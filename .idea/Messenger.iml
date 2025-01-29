@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/backend/src" isTestSource="false" packagePrefix="App\" />
+      <excludeFolder url="file://$MODULE_DIR$/.tmp" />
+      <excludeFolder url="file://$MODULE_DIR$/temp" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/composer" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/fig/http-message-util" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/firebase/php-jwt" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/graham-campbell/result-type" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/nikic/fast-route" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/phpoption/phpoption" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/psr/container" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/psr/http-factory" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/psr/http-message" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/psr/http-server-handler" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/psr/http-server-middleware" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/psr/log" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/ralouphie/getallheaders" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/slim/psr7" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/slim/slim" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/symfony/polyfill-ctype" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/symfony/polyfill-mbstring" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/symfony/polyfill-php80" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/vlucas/phpdotenv" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

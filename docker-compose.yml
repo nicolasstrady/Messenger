@@ -1,0 +1,55 @@
+services:
+  websocket:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/app
+    depends_on:
+      - db
+
+  frontend:
+    build: frontend
+    restart: always
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - NEXT_PUBLIC_PORT=3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - /app/node_modules
+    depends_on:
+      - api
+      - websocket
+
+  db:
+    image: mariadb:latest
+    container_name: database
+    environment:
+      - MYSQL_ROOT_PASSWORD=chat_password
+      - MYSQL_DATABASE=chat_db
+      - MYSQL_USER=chat_user
+      - MYSQL_PASSWORD=chat_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  db_data:
