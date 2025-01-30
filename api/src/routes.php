@@ -90,6 +90,7 @@ $app->post('/register', [UserController::class, 'register']);
 $app->get('/conversations/{userId}', [ConversationController::class, 'listConversationsByUser']);
 $app->get('/messages/{conversationId}', [MessageController::class, 'listMessagesByConversation']);
 $app->post('/conversations', [ConversationController::class, 'createConversation']);
+$app->get('/notifications', [UserController::class, 'getNotifications']);
 
 
 $app->run();

@@ -2,7 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Models\User;
+use App\models\Notification;
+use App\models\User;
 use Firebase\JWT\JWT;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -80,7 +81,7 @@ class UserController
                 $jwt = JWT::encode($payload, $key, 'HS256');
 
                 // Retourner le jeton
-                $response->getBody()->write(json_encode(['token' => $jwt, 'userId' => $user->id, 'user_first_name' => $user->first_name, 'user_last_name' => $user->last_name ]));
+                $response->getBody()->write(json_encode(['token' => $jwt, 'userId' => $user->id, 'user_first_name' => $user->first_name, 'user_last_name' => $user->last_name]));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
             } else {
                 $response->getBody()->write(json_encode(['error' => 'Invalid credentials.']));
@@ -103,5 +104,29 @@ class UserController
 
         // Ajouter le bon type de contenu et retourner la réponse
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public static function getNotifications(Request $request, Response $response, array $args): Response
+    {
+        $queryParams = $request->getQueryParams();
+        $userId = $queryParams['userId'] ?? null;
+
+        if (!$userId) {
+            $response->getBody()->write(json_encode(["error" => "Missing userId"]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        try {
+            // Se connecter à la base de données
+            $pdo = getDatabaseConnection();
+            // Récupérer les notifications d'un utilisateur via le modèle
+            $notifications = Notification::findByUser($pdo, $userId);
+
+            $response->getBody()->write(json_encode($notifications));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode(["error" => "Failed to fetch notifications", "message" => $e->getMessage()]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
     }
 }
