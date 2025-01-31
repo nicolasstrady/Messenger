@@ -9,6 +9,10 @@ import CreateConversation from "@/app/components/CreateConversation";
 type Conversation = {
     name: string;
     id: number;
+    last_message?: string;
+    last_message_at?: string;
+    last_message_author_first_name?: string;
+    last_message_author_last_name?: string;
 };
 
 const Page = () => {
@@ -64,8 +68,40 @@ const Page = () => {
             socketInstance.emit("authenticate", {userId});
         });
 
-        socketInstance.on("new_notification", (notification) => {
-            setNotifications((prev) => [...prev, notification]); // Ajoute la nouvelle notification
+        socketInstance.on("new_notification", (notif) => {
+            console.log("🔔 Nouvelle notification :", notif);
+            console.log("🔔 contenu :", notif.message.content);
+
+            // Ajoute la notification
+            setNotifications((prev) => [...prev, notif]);
+
+            // Met à jour la conversation correspondante avec le dernier message reçu
+            setConversations((prevConversations) => {
+                return prevConversations.map((conv) =>
+                    conv.id == notif.conversation_id
+                        ? {
+                            ...conv,
+                            last_message: notif.message.content,
+                            last_message_at: new Date().toISOString(), // Met à jour la date du dernier message
+                            last_message_author_first_name: notif.message.first_name,
+                            last_message_author_last_name: notif.message.last_name,
+                        }
+                        : conv
+                );
+            });
+
+            // Déplace la conversation en haut de la liste
+            setConversations((prevConversations) => {
+                const updatedConversations = [...prevConversations];
+                const updatedConvIndex = updatedConversations.findIndex((conv) => conv.id === notif.conversation_id);
+
+                if (updatedConvIndex !== -1) {
+                    const updatedConv = updatedConversations.splice(updatedConvIndex, 1)[0];
+                    updatedConversations.unshift(updatedConv);
+                }
+
+                return updatedConversations;
+            });
         });
 
         socketInstance.on("disconnect", () => console.log("Socket.IO disconnected"));
@@ -89,7 +125,6 @@ const Page = () => {
                     <CreateConversation onConversationCreated={refreshConversations}/>
                     <NotificationPopup notifications={notifications} setNotifications={setNotifications}/>
                 </div>
-
             </div>
 
             {/* Liste des conversations */}
@@ -98,10 +133,9 @@ const Page = () => {
             ) : (
                 <ul className="space-y-4">
                     {conversations.map((conversation: Conversation) => {
-                        const unreadMessagesCount = notifications.filter((notif) => notif.conversation_id == conversation.id).length;
+                        const unreadMessagesCount = notifications.filter((notif) => notif.conversation_id === conversation.id).length;
 
                         return (
-
                             <li key={conversation.id}>
                                 <Link
                                     href={{
@@ -113,22 +147,29 @@ const Page = () => {
                                     }}
                                 >
                                     <div
-                                        className="border-2 border-gray-600 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition duration-200 flex justify-between items-center">
-
-                                        <h4 className="text-lg font-semibold">
-                                            {conversation.name}
-                                        </h4>
+                                        className="border-2 border-gray-600 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition duration-200 flex justify-between items-start"
+                                    >
+                                        <div className="flex flex-col">
+                                            <h4 className="text-lg font-semibold">{conversation.name}</h4>
+                                            {conversation.last_message && (
+                                                <p className="text-sm text-gray-600 mt-1">
+                                                    <span
+                                                        className="font-semibold">{conversation.last_message_author_first_name} {conversation.last_message_author_last_name} :</span> {conversation.last_message}
+                                                </p>
+                                            )}
+                                        </div>
                                         {/* 🔴 Affichage du compteur de messages non lus */}
                                         {unreadMessagesCount > 0 && (
                                             <div
-                                                className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                                className="bg-red-500 text-white text-xs px-2 py-1 rounded-full"
+                                            >
                                                 {unreadMessagesCount}
                                             </div>
                                         )}
                                     </div>
                                 </Link>
                             </li>
-                        )
+                        );
                     })}
                 </ul>
             )}

@@ -16,7 +16,11 @@ class Conversation
                 c1.id AS id,
                 COALESCE(c1.name, GROUP_CONCAT(DISTINCT u.first_name ORDER BY u.first_name SEPARATOR ', ')) AS name,
                 c1.type AS type,
-                p1.user_id AS current_user_id
+                p1.user_id AS current_user_id,
+                m.content AS last_message,
+                m.created_at AS last_message_at,
+                um.first_name AS last_message_author_first_name,
+                um.last_name AS last_message_author_last_name
             FROM
                 conversations c1
             JOIN
@@ -25,11 +29,18 @@ class Conversation
                 participants p2 ON c1.id = p2.conversation_id
             JOIN
                 users u ON p2.user_id = u.id
+            LEFT JOIN
+                messages m ON c1.id = m.conversation_id
+                AND m.id = (SELECT MAX(m2.id) FROM messages m2 WHERE m2.conversation_id = c1.id) -- Récupère le dernier message
+            LEFT JOIN
+                users um ON m.author_id = um.id -- Jointure pour obtenir les informations de l'auteur du message
             WHERE
                 p1.user_id = :user_id
                 AND p2.user_id != :user_id
             GROUP BY
-                c1.id, c1.name, c1.type, p1.user_id;
+                c1.id, c1.name, c1.type, p1.user_id, m.content, m.created_at, um.first_name, um.last_name
+            ORDER BY
+                last_message_at DESC;
     ";
 
         $stmt = $pdo->prepare($sql);

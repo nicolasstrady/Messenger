@@ -47,10 +47,21 @@ io.on('connection', (socket) => {
                 socket.emit('authenticated', {success: true});
 
                 // Envoyer les notifications en attente
-                const [notifications] = await pool.query("SELECT * FROM notifications WHERE user_id = ?", [userId]);
+                const [notifications] = await pool.query("SELECT * FROM notifications no INNER JOIN messages mes ON mes.id = no.conversation_id INNER JOIN users us ON us.id = mes.author_id WHERE user_id = ?", [userId]);
                 notifications.forEach((notif) => {
-                    console.log('Emit notification', notif);
-                    socket.emit('new_notification', notif);
+                    socket.emit('new_notification', {
+                        conversation_id: notif.conversation_id,
+                        message: {
+                            id: notif.id,
+                            content: notif.content,
+                            author_id: notif.author_id,
+                            conversation_id: notif.conversation_id,
+                            created_at: notif.created_at,
+                            status: notif.status,
+                            first_name: notif.first_name,
+                            last_name: notif.last_name,
+                        }
+                    });
                 });
 
                 // Supprimer les notifications une fois envoyées
@@ -113,10 +124,11 @@ io.on('connection', (socket) => {
                         "INSERT INTO notifications (user_id, conversation_id, message_id, created_at) VALUES (?, ?, ?, NOW())",
                         [participant.user_id, conversation_id, messageId]
                     );
+                    console.log(conversation_id, typeof conversation_id);
 
                     if (user) {// Envoyer la notification en temps réel si connecté mais sur une autre conversation
                         io.to(user.socketId).emit('new_notification', {
-                            conversation_id,
+                            conversation_id: parseInt(conversation_id, 10),
                             message,
                         });
                     }
