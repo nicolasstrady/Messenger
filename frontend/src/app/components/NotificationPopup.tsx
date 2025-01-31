@@ -1,25 +1,39 @@
 "use client";
-import React, {useState, useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import io from "socket.io-client";
 import {useUser} from "@/app/UserContext";
 import {useRouter} from "next/navigation";
 
-type Notification = {
-    conversation_id: number;
-    message: {
-        id: number;
-        first_name: string;
-        last_name: string;
-        content: string;
-    };
+type Message = {
+    id: number;
+    first_name: string;
+    last_name: string;
+    content: string;
 };
 
-const NotificationPopup = () => {
+export type Notification = {
+    conversation_id: number;
+    message: Message;
+};
+
+type NotificationPopupProps = {
+    notifications: Notification[];
+    setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
+    conversationId?: number;
+};
+
+const NotificationPopup: React.FC<NotificationPopupProps> = ({notifications, setNotifications, conversationId}) => {
     const {userId} = useUser();
     const router = useRouter();
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [socket, setSocket] = useState<any>(null);
+    const [isNotificationModalOpen, setIsNotificationModalOpen] = React.useState(false);
+
+    // useEffect(() => {
+    //     const savedNotifications = localStorage.getItem("notifications");
+    //     if (savedNotifications) {
+    //         setNotifications(JSON.parse(savedNotifications));
+    //     }
+    // }, []);
 
     // 🔔 Récupération des notifications stockées en base à la connexion
     useEffect(() => {
@@ -38,18 +52,26 @@ const NotificationPopup = () => {
         fetchNotifications();
     }, [userId]);
 
+    // useEffect(() => {
+    //     localStorage.setItem("notifications", JSON.stringify(notifications));
+    // }, [notifications]);
+
     // 🔔 Écoute des notifications en temps réel via Socket.IO
     useEffect(() => {
         const socketInstance = io("http://192.168.1.68:8081");
 
         socketInstance.on("connect", () => {
-            console.log("Socket.IO connected");
+            console.log("Socket.IO notif");
             socketInstance.emit("authenticate", {userId});
         });
 
-        socketInstance.on("new_notification", ({conversation_id, message}) => {
-            setNotifications((prev) => [...prev, {conversation_id, message}]);
-        });
+        // socketInstance.on("new_notification", (notification: Notification) => {
+        //     console.log("New notification", notification);
+        //     console.log(conversationId)
+        //     if (notification.conversation_id !== conversationId) {
+        //         setNotifications((prev) => [...prev, notification]); // Ajoute la nouvelle notification
+        //     }
+        // });
 
         socketInstance.on("disconnect", () => {
             console.log("Socket.IO disconnected");
@@ -61,16 +83,17 @@ const NotificationPopup = () => {
             socketInstance.disconnect();
             setSocket(null);
         };
-    }, [userId]);
+    }, [userId, setNotifications]);
 
+    // console.log("Notifs", notifications);
 
     return (
         <div className="relative">
             {/* Bouton de notification */}
-            <button onClick={() => setIsNotificationModalOpen(true)} className="relative">
+            <button onClick={() => setIsNotificationModalOpen(true)} className="relative text-2xl">
                 🔔
                 {notifications.length > 0 && (
-                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs w-3 rounded-full">
                         {notifications.length}
                     </span>
                 )}
@@ -100,6 +123,8 @@ const NotificationPopup = () => {
                                             onClick={() => {
                                                 router.push(`/conversations/${notif.conversation_id}`);
                                                 setIsNotificationModalOpen(false);
+                                                // Supprimer la notification après navigation
+                                                setNotifications(prev => prev.filter(n => n.conversation_id !== notif.conversation_id));
                                             }}
                                             className="text-blue-500 text-xs mt-1 hover:underline"
                                         >

@@ -30,6 +30,26 @@ class ConversationController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    public static function getConversationById(Request $request, Response $response, array $args): Response
+    {
+        // Récupérer l'ID de l'utilisateur depuis l'argument de la route
+        $id = (int)$args['id'];
+        $userId = (int)$args['userId'];
+
+
+        // Se connecter à la base de données
+        $pdo = getDatabaseConnection();
+
+        // Récupérer les conversations de l'utilisateur
+        $conversations = Conversation::findById($pdo, $id, $userId);
+
+        // Encoder en JSON et écrire dans le corps de la réponse
+        $response->getBody()->write(json_encode($conversations));
+
+        // Ajouter le bon type de contenu et retourner la réponse
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
     // Méthode pour créer une nouvelle conversation
     public static function createConversation(Request $request, Response $response, array $args): Response
     {

@@ -1,10 +1,9 @@
 "use client";
-
 import React, {useEffect, useState, useRef} from "react";
 import io from "socket.io-client";
 import {useUser} from "@/app/UserContext";
 import {useRouter, useSearchParams} from "next/navigation";
-import {router} from "next/client";
+import NotificationPopup, {Notification} from "@/app/components/NotificationPopup"; // ✅ Importation
 
 type Message = {
     id?: number;
@@ -24,16 +23,15 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
     const [newMessage, setNewMessage] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [socket, setSocket] = useState<any>(null);
-    const {userId, token, first_name, last_name} = useUser();
+    const {userId, first_name, last_name} = useUser();
     const searchParams = useSearchParams();
-    const title = searchParams.get("title");
+    const [title, setTitle] = useState("");
     const [typingUsers, setTypingUsers] = useState<{ userId: number, name: string }[]>([]);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const router = useRouter();
 
     // 🔔 Gestion des notifications
-    const [notifications, setNotifications] = useState<{ conversation_id: number; message: Message }[]>([]);
-    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
 
     useEffect(() => {
         if (!resolvedParams.id) return;
@@ -90,6 +88,16 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
 
         setSocket(socketInstance);
 
+        const fetchConversationDetails = async () => {
+            try {
+                const response = await fetch(`http://192.168.1.68:8000/conversations/${resolvedParams.id}/user/${userId}`);
+                const data = await response.json();
+                setTitle(data.name);
+            } catch (error) {
+                console.error("Failed to fetch messages:", error);
+            }
+        };
+
         const fetchMessages = async () => {
             try {
                 const response = await fetch(`http://192.168.1.68:8000/messages/${resolvedParams.id}`);
@@ -100,6 +108,7 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
             }
         };
 
+        fetchConversationDetails();
         fetchMessages();
 
         return () => {
@@ -144,7 +153,7 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
         const message: Message = {
             id: tempId,
             content: newMessage,
-            conversation_id: resolvedParams.id,
+            conversation_id: resolvedParams.id as number,
             author_id: userId,
             created_at: new Date().toISOString(),
             status: "sent",
@@ -177,25 +186,15 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
         }
     };
 
-
-    console.log(notifications);
+    console.log(messages);
 
     return (
         <div className="p-4">
             {/* 🔔 Barre de navigation avec notifications */}
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">{title ? `${title}` : `Conversation ${resolvedParams.id}`}</h1>
-                <div className="relative">
-                    <button onClick={() => setIsNotificationModalOpen(true)}>
-                        🔔
-                        {notifications.length > 0 && (
-                            <span
-                                className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                {notifications.length}
-                            </span>
-                        )}
-                    </button>
-                </div>
+                <h1 className="text-2xl font-bold">{title}</h1>
+                <NotificationPopup notifications={notifications}
+                                   setNotifications={setNotifications}/> {/* ✅ Ajout de NotificationPopup */}
             </div>
 
             <div className="border rounded-lg p-4 h-[80vh] overflow-y-auto flex flex-col">
@@ -250,42 +249,6 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
                 />
                 <button type="submit" className="bg-blue-500 text-white px-4 rounded-r-lg">Envoyer</button>
             </form>
-            {isNotificationModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-96 relative">
-                        <button
-                            onClick={() => setIsNotificationModalOpen(false)}
-                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-                        >
-                            ✖
-                        </button>
-                        <h2 className="text-lg font-bold mb-4">📩 Notifications</h2>
-
-                        {notifications.length === 0 ? (
-                            <p className="text-gray-500">Aucune nouvelle notification</p>
-                        ) : (
-                            <ul className="space-y-3">
-                                {notifications.map((notif, index) => (
-                                    <li key={index} className="p-2 border-b border-gray-200">
-                                        <p className="text-sm font-semibold">{notif.message.first_name} {notif.message.last_name}</p>
-                                        <p className="text-sm text-gray-700">{notif.message.content}</p>
-                                        <button
-                                            onClick={() => {
-                                                router.push(`/conversations/${notif.message.conversation_id}`);
-                                                setIsNotificationModalOpen(false);
-                                            }}
-                                            className="text-blue-500 text-xs mt-1 hover:underline"
-                                        >
-                                            Voir la conversation
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                </div>
-            )}
         </div>
-
     );
 }

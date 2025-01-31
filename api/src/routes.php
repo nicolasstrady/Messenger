@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Routes;
 
 use App\Controllers\ConversationController;
@@ -53,18 +54,18 @@ $app = AppFactory::create();
 //    return $handler->handle($request);
 //};
 
- $app->options('/{routes:.+}', function ($request, $response, $args) {
-     return $response;
- });
+$app->options('/{routes:.+}', function ($request, $response, $args) {
+    return $response;
+});
 
- $app->add(function (Request $request, RequestHandler $handler) {
-     $response = $handler->handle($request);
-     return $response
-         ->withHeader('Access-Control-Allow-Credentials', 'true')
-         ->withHeader('Access-Control-Allow-Origin', 'http://192.168.1.68:3000')
-         ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization');
+$app->add(function (Request $request, RequestHandler $handler) {
+    $response = $handler->handle($request);
+    return $response
+        ->withHeader('Access-Control-Allow-Credentials', 'true')
+        ->withHeader('Access-Control-Allow-Origin', 'http://192.168.1.68:3000')
+        ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization');
 //         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
- });
+});
 
 //$afterMiddleware = function (Request $request, RequestHandler $handler) {
 //    // Proceed with the next middleware
@@ -87,7 +88,9 @@ $app = AppFactory::create();
 $app->get('/users', [UserController::class, 'listUsers']);
 $app->post('/login', [UserController::class, 'login']);
 $app->post('/register', [UserController::class, 'register']);
-$app->get('/conversations/{userId}', [ConversationController::class, 'listConversationsByUser']);
+$app->get('/conversations/user/{userId}', [ConversationController::class, 'listConversationsByUser']);
+$app->get('/conversations/{id}/user/{userId}', [ConversationController::class, 'getConversationById']);
+
 $app->get('/messages/{conversationId}', [MessageController::class, 'listMessagesByConversation']);
 $app->post('/conversations', [ConversationController::class, 'createConversation']);
 $app->get('/notifications', [UserController::class, 'getNotifications']);

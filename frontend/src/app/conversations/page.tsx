@@ -3,39 +3,39 @@ import React, {useEffect, useState} from "react";
 import Link from "next/link";
 import io from "socket.io-client";
 import {useUser} from "@/app/UserContext";
-import NotificationPopup from "@/app/components/NotificationPopup";
+import NotificationPopup, {Notification} from "@/app/components/NotificationPopup";
+import CreateConversation from "@/app/components/CreateConversation";
 
 type Conversation = {
     name: string;
     id: number;
-    other_user_names: string;
 };
 
 const Page = () => {
     const {userId} = useUser();
     const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [notifications, setNotifications] = useState<number[]>([]); // Liste des conversations avec notification
+    const [notifications, setNotifications] = useState<Notification[]>([]); // 🔔 Liste complète des notifications
     const [socket, setSocket] = useState<any>(null);
 
-    // 🔄 Récupération des conversations
-    useEffect(() => {
+    // 🔄 Fonction pour rafraîchir les conversations après la création
+    const refreshConversations = async () => {
         if (!userId) return;
+        try {
+            const response = await fetch(`http://192.168.1.68:8000/conversations/user/${userId}`, {
+                method: "GET",
+                credentials: "include",
+                headers: {"Content-Type": "application/json"},
+            });
+            const data = await response.json();
+            setConversations(data);
+        } catch (error) {
+            console.error("Failed to fetch conversations:", error);
+        }
+    };
 
-        const fetchConversations = async () => {
-            try {
-                const response = await fetch(`http://192.168.1.68:8000/conversations/${userId}`, {
-                    method: "GET",
-                    credentials: "include",
-                    headers: {"Content-Type": "application/json"},
-                });
-                const data = await response.json();
-                setConversations(data);
-            } catch (error) {
-                console.error("Failed to fetch conversations:", error);
-            }
-        };
-
-        fetchConversations();
+    // 🔄 Chargement des conversations et des notifications
+    useEffect(() => {
+        refreshConversations();
     }, [userId]);
 
     // 🔔 Récupération des notifications stockées en base
@@ -46,7 +46,7 @@ const Page = () => {
             try {
                 const response = await fetch(`http://192.168.1.68:8000/notifications?userId=${userId}`);
                 const data = await response.json();
-                setNotifications(data.map((notif: { conversation_id: number }) => notif.conversation_id));
+                setNotifications(data);
             } catch (error) {
                 console.error("Failed to fetch notifications:", error);
             }
@@ -64,8 +64,8 @@ const Page = () => {
             socketInstance.emit("authenticate", {userId});
         });
 
-        socketInstance.on("new_notification", ({conversation_id}) => {
-            setNotifications((prev) => [...new Set([...prev, conversation_id])]); // Évite les doublons
+        socketInstance.on("new_notification", (notification) => {
+            setNotifications((prev) => [...prev, notification]); // Ajoute la nouvelle notification
         });
 
         socketInstance.on("disconnect", () => console.log("Socket.IO disconnected"));
@@ -78,12 +78,18 @@ const Page = () => {
         };
     }, [userId]);
 
+    console.log(notifications, conversations);
+
     return (
         <div className="p-4">
-            {/* Barre de navigation avec notifications */}
+            {/* 🔔 Barre de navigation avec notifications */}
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">Liste des Conversations</h1>
-                <NotificationPopup/>
+                <div className="flex gap-4">
+                    <CreateConversation onConversationCreated={refreshConversations}/>
+                    <NotificationPopup notifications={notifications} setNotifications={setNotifications}/>
+                </div>
+
             </div>
 
             {/* Liste des conversations */}
@@ -91,32 +97,39 @@ const Page = () => {
                 <p>Pas de conversation</p>
             ) : (
                 <ul className="space-y-4">
-                    {conversations.map((conversation: Conversation) => (
-                        <li key={conversation.id}>
-                            <Link
-                                href={{
-                                    pathname: `/conversations/${conversation.id}`,
-                                    query: {title: conversation.name ?? conversation.other_user_names},
-                                }}
-                                onClick={() => {
-                                    // 🔔 Supprimer la notification lorsque l'on ouvre la conversation
-                                    setNotifications((prev) => prev.filter((id) => id !== conversation.id));
-                                }}
-                            >
-                                <div
-                                    className="border-2 border-gray-600 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition duration-200 flex justify-between items-center"
+                    {conversations.map((conversation: Conversation) => {
+                        const unreadMessagesCount = notifications.filter((notif) => notif.conversation_id == conversation.id).length;
+
+                        return (
+
+                            <li key={conversation.id}>
+                                <Link
+                                    href={{
+                                        pathname: `/conversations/${conversation.id}`,
+                                    }}
+                                    onClick={() => {
+                                        // 🔔 Supprimer la notification lorsque l'on ouvre la conversation
+                                        setNotifications((prev) => prev.filter((notif) => notif.conversation_id !== conversation.id));
+                                    }}
                                 >
-                                    <h4 className="text-lg font-semibold">
-                                        {conversation.name ?? conversation.other_user_names}
-                                    </h4>
-                                    {/* Affichage de l'icône 🔔 si la conversation a une notification */}
-                                    {notifications.includes(conversation.id) && (
-                                        <span className="text-red-500">🔔</span>
-                                    )}
-                                </div>
-                            </Link>
-                        </li>
-                    ))}
+                                    <div
+                                        className="border-2 border-gray-600 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition duration-200 flex justify-between items-center">
+
+                                        <h4 className="text-lg font-semibold">
+                                            {conversation.name}
+                                        </h4>
+                                        {/* 🔴 Affichage du compteur de messages non lus */}
+                                        {unreadMessagesCount > 0 && (
+                                            <div
+                                                className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                                {unreadMessagesCount}
+                                            </div>
+                                        )}
+                                    </div>
+                                </Link>
+                            </li>
+                        )
+                    })}
                 </ul>
             )}
         </div>

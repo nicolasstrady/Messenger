@@ -42,12 +42,14 @@ io.on('connection', (socket) => {
                 socket.firstName = rows[0].first_name;
                 socket.lastName = rows[0].last_name;
                 connectedUsers.set(userId, {socketId: socket.id, conversationId});
+                console.log(connectedUsers);
                 socket.join(conversationId);
                 socket.emit('authenticated', {success: true});
 
                 // Envoyer les notifications en attente
                 const [notifications] = await pool.query("SELECT * FROM notifications WHERE user_id = ?", [userId]);
                 notifications.forEach((notif) => {
+                    console.log('Emit notification', notif);
                     socket.emit('new_notification', notif);
                 });
 
@@ -102,9 +104,9 @@ io.on('connection', (socket) => {
                 [conversation_id, socket.userId]
             );
 
+
             for (const participant of participants) {
                 const user = connectedUsers.get(participant.user_id);
-
                 if (!user || user.conversationId !== conversation_id) {
                     // Stocker la notification en base de données
                     await pool.query(
@@ -112,8 +114,7 @@ io.on('connection', (socket) => {
                         [participant.user_id, conversation_id, messageId]
                     );
 
-                    if (user) {
-                        // Envoyer la notification en temps réel si connecté mais sur une autre conversation
+                    if (user) {// Envoyer la notification en temps réel si connecté mais sur une autre conversation
                         io.to(user.socketId).emit('new_notification', {
                             conversation_id,
                             message,
@@ -135,6 +136,7 @@ io.on('connection', (socket) => {
 
     // Marquer les messages comme lus uniquement quand un autre utilisateur les voit
     socket.on('mark_as_read', async ({messageId, conversationId, readerId}) => {
+        console.log('Marqué comme lu', messageId, conversationId, readerId);
         try {
             const [rows] = await pool.query("SELECT author_id FROM messages WHERE id = ?", [messageId]);
             if (rows.length > 0 && rows[0].author_id !== readerId) {
