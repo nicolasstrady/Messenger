@@ -16,76 +16,11 @@ export type Notification = {
     message: Message;
 };
 
-type NotificationPopupProps = {
-    notifications: Notification[];
-    setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
-    conversationId?: number;
-};
 
-const NotificationPopup: React.FC<NotificationPopupProps> = ({notifications, setNotifications, conversationId}) => {
-    const {userId} = useUser();
+const NotificationPopup: React.FC = () => {
+    const {notifications, clearNotification} = useUser();
     const router = useRouter();
-    const [socket, setSocket] = useState<any>(null);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = React.useState(false);
-
-    // useEffect(() => {
-    //     const savedNotifications = localStorage.getItem("notifications");
-    //     if (savedNotifications) {
-    //         setNotifications(JSON.parse(savedNotifications));
-    //     }
-    // }, []);
-
-    // 🔔 Récupération des notifications stockées en base à la connexion
-    useEffect(() => {
-        if (!userId) return;
-
-        const fetchNotifications = async () => {
-            try {
-                const response = await fetch(`http://192.168.1.68:8000/notifications?userId=${userId}`);
-                const data = await response.json();
-                setNotifications(data);
-            } catch (error) {
-                console.error("Failed to fetch notifications:", error);
-            }
-        };
-
-        fetchNotifications();
-    }, [userId]);
-
-    // useEffect(() => {
-    //     localStorage.setItem("notifications", JSON.stringify(notifications));
-    // }, [notifications]);
-
-    // 🔔 Écoute des notifications en temps réel via Socket.IO
-    useEffect(() => {
-        const socketInstance = io("http://192.168.1.68:8081");
-
-        socketInstance.on("connect", () => {
-            console.log("Socket.IO notif");
-            socketInstance.emit("authenticate", {userId});
-        });
-
-        // socketInstance.on("new_notification", (notification: Notification) => {
-        //     console.log("New notification", notification);
-        //     console.log(conversationId)
-        //     if (notification.conversation_id !== conversationId) {
-        //         setNotifications((prev) => [...prev, notification]); // Ajoute la nouvelle notification
-        //     }
-        // });
-
-        socketInstance.on("disconnect", () => {
-            console.log("Socket.IO disconnected");
-        });
-
-        setSocket(socketInstance);
-
-        return () => {
-            socketInstance.disconnect();
-            setSocket(null);
-        };
-    }, [userId, setNotifications]);
-
-    // console.log("Notifs", notifications);
 
     return (
         <div className="relative">
@@ -124,7 +59,7 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({notifications, set
                                                 router.push(`/conversations/${notif.conversation_id}`);
                                                 setIsNotificationModalOpen(false);
                                                 // Supprimer la notification après navigation
-                                                setNotifications(prev => prev.filter(n => n.conversation_id !== notif.conversation_id));
+                                                clearNotification(notif.conversation_id);
                                             }}
                                             className="text-blue-500 text-xs mt-1 hover:underline"
                                         >

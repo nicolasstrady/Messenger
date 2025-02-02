@@ -24,14 +24,9 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [socket, setSocket] = useState<any>(null);
     const {userId, first_name, last_name} = useUser();
-    const searchParams = useSearchParams();
     const [title, setTitle] = useState("");
     const [typingUsers, setTypingUsers] = useState<{ userId: number, name: string }[]>([]);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const router = useRouter();
-
-    // 🔔 Gestion des notifications
-    const [notifications, setNotifications] = useState<Notification[]>([]);
 
     useEffect(() => {
         if (!resolvedParams.id) return;
@@ -43,7 +38,7 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
             socketInstance.emit("authenticate", {userId, conversationId: resolvedParams.id});
         });
 
-        socketInstance.on("authenticated", () => console.log("Socket.IO authenticated"));
+        socketInstance.on("authenticated", ({socketId}) => console.log("Socket.IO conv Id ", socketId));
 
         socketInstance.on("message", (message: Message) => {
             console.log("Received message", message);
@@ -76,12 +71,12 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
             }
         });
 
-        // 🔔 Écoute des notifications en temps réel
-        socketInstance.on("new_notification", ({conversation_id, message}) => {
-            if (conversation_id !== resolvedParams.id) {
-                setNotifications((prev) => [...prev, {conversation_id, message}]);
-            }
-        });
+        // // 🔔 Écoute des notifications en temps réel
+        // socketInstance.on("new_notification", ({conversation_id, message}) => {
+        //     if (conversation_id !== resolvedParams.id) {
+        //         setNotifications((prev) => [...prev, {conversation_id, message}]);
+        //     }
+        // });
 
         socketInstance.on("connect_error", (error: any) => console.error("Socket.IO connection error", error));
         socketInstance.on("disconnect", () => console.log("Socket.IO disconnected"));
@@ -118,12 +113,12 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
     }, [resolvedParams.id]);
 
 
-    // 🔔 Suppression des notifications quand l'utilisateur ouvre la conversation
-    useEffect(() => {
-        if (notifications.length > 0) {
-            setNotifications((prev) => prev.filter(notif => notif.conversation_id !== resolvedParams.id));
-        }
-    }, [resolvedParams.id]);
+    // // 🔔 Suppression des notifications quand l'utilisateur ouvre la conversation
+    // useEffect(() => {
+    //     if (notifications.length > 0) {
+    //         setNotifications((prev) => prev.filter(notif => notif.conversation_id !== resolvedParams.id));
+    //     }
+    // }, [resolvedParams.id]);
 
     useEffect(() => {
         if (messages.length > 0) {
@@ -186,15 +181,12 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
         }
     };
 
-    console.log(messages);
-
     return (
         <div className="p-4">
             {/* 🔔 Barre de navigation avec notifications */}
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">{title}</h1>
-                <NotificationPopup notifications={notifications}
-                                   setNotifications={setNotifications}/> {/* ✅ Ajout de NotificationPopup */}
+                <NotificationPopup/> {/* ✅ Ajout de NotificationPopup */}
             </div>
 
             <div className="border rounded-lg p-4 h-[80vh] overflow-y-auto flex flex-col">

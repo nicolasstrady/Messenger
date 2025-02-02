@@ -41,13 +41,20 @@ io.on('connection', (socket) => {
                 socket.userId = userId;
                 socket.firstName = rows[0].first_name;
                 socket.lastName = rows[0].last_name;
-                connectedUsers.set(userId, {socketId: socket.id, conversationId});
-                console.log(connectedUsers);
+
+                // Si l'utilisateur est déjà connecté, on ajoute un autre socketId à la liste
+                if (connectedUsers.has(userId)) {
+                    connectedUsers.get(userId).push({socketId: socket.id, conversationId});
+                } else {
+                    // Sinon, on crée une nouvelle entrée avec un tableau
+                    connectedUsers.set(userId, [{socketId: socket.id, conversationId}]);
+                }
+
                 socket.join(conversationId);
-                socket.emit('authenticated', {success: true});
+                socket.emit('authenticated', {success: true, socketId: socket.id});
 
                 // Envoyer les notifications en attente
-                const [notifications] = await pool.query("SELECT * FROM notifications no INNER JOIN messages mes ON mes.id = no.conversation_id INNER JOIN users us ON us.id = mes.author_id WHERE user_id = ?", [userId]);
+                const [notifications] = await pool.query("SELECT * FROM notifications no INNER JOIN messages mes ON mes.id = no.message_id INNER JOIN users us ON us.id = mes.author_id WHERE mes.status != 'read' AND user_id = ?", [userId]);
                 notifications.forEach((notif) => {
                     socket.emit('new_notification', {
                         conversation_id: notif.conversation_id,
@@ -65,7 +72,7 @@ io.on('connection', (socket) => {
                 });
 
                 // Supprimer les notifications une fois envoyées
-                await pool.query("DELETE FROM notifications WHERE user_id = ?", [userId]);
+                await pool.query("DELETE nf FROM notifications nf INNER JOIN messages mes ON mes.id = nf.message_id WHERE mes.`status` = 'read' AND nf.user_id = ?", [userId]);
             } else {
                 socket.emit('authenticated', {success: false, message: 'User not found'});
             }
@@ -109,30 +116,36 @@ io.on('connection', (socket) => {
 
             socket.to(conversation_id).emit('message', message);
 
+            // console.log(connectedUsers);
+
             // Vérifier les utilisateurs connectés
             const [participants] = await pool.query(
                 "SELECT user_id FROM participants WHERE conversation_id = ? AND user_id != ?",
                 [conversation_id, socket.userId]
             );
 
-
             for (const participant of participants) {
-                const user = connectedUsers.get(participant.user_id);
-                if (!user || user.conversationId !== conversation_id) {
-                    // Stocker la notification en base de données
-                    await pool.query(
-                        "INSERT INTO notifications (user_id, conversation_id, message_id, created_at) VALUES (?, ?, ?, NOW())",
-                        [participant.user_id, conversation_id, messageId]
-                    );
-                    console.log(conversation_id, typeof conversation_id);
+                const usersSockets = connectedUsers.get(participant.user_id);
 
-                    if (user) {// Envoyer la notification en temps réel si connecté mais sur une autre conversation
-                        io.to(user.socketId).emit('new_notification', {
-                            conversation_id: parseInt(conversation_id, 10),
-                            message,
+                if (usersSockets) {
+                    // Vérifier si au moins un socket du participant est déjà connecté à la conversation
+                    const isConnectedToConversation = usersSockets.some(userSocket => userSocket.conversationId === conversation_id);
+
+                    if (!isConnectedToConversation) {
+                        // Si aucun socket de l'utilisateur n'est sur la conversation, on envoie la notification
+                        usersSockets.forEach((userSocket) => {
+                            io.to(userSocket.socketId).emit('new_notification', {
+                                conversation_id: parseInt(conversation_id, 10),
+                                message,
+                            });
                         });
                     }
                 }
+                // Si l'utilisateur n'est pas connecté du tout, stocker la notification en base
+                await pool.query(
+                    "INSERT INTO notifications (user_id, conversation_id, message_id, created_at) VALUES (?, ?, ?, NOW())",
+                    [participant.user_id, conversation_id, messageId]
+                );
             }
 
             // Mise à jour du statut en 'delivered' après 1 seconde
@@ -148,7 +161,6 @@ io.on('connection', (socket) => {
 
     // Marquer les messages comme lus uniquement quand un autre utilisateur les voit
     socket.on('mark_as_read', async ({messageId, conversationId, readerId}) => {
-        console.log('Marqué comme lu', messageId, conversationId, readerId);
         try {
             const [rows] = await pool.query("SELECT author_id FROM messages WHERE id = ?", [messageId]);
             if (rows.length > 0 && rows[0].author_id !== readerId) {
@@ -177,8 +189,12 @@ io.on('connection', (socket) => {
     // Déconnexion de l'utilisateur
     socket.on('disconnect', () => {
         connectedUsers.forEach((value, key) => {
-            if (value.socketId === socket.id) {
-                connectedUsers.delete(key);
+            const index = value.findIndex((entry) => entry.socketId === socket.id);
+            if (index !== -1) {
+                value.splice(index, 1);
+                if (value.length === 0) {
+                    connectedUsers.delete(key);
+                }
             }
         });
         console.log('User disconnected');
