@@ -5,6 +5,7 @@ import io from "socket.io-client";
 import {useUser} from "@/app/UserContext";
 import NotificationPopup, {Notification} from "@/app/components/NotificationPopup";
 import CreateConversation from "@/app/components/CreateConversation";
+import {useRouter} from "next/navigation";
 
 type Conversation = {
     name: string;
@@ -20,6 +21,13 @@ const Page = () => {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [socket, setSocket] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true); // 🔄 État pour le skeleton
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!userId) {
+            router.push("/"); // Redirection si non connecté
+        }
+    }, [userId, router]);
 
     // 🔄 Fonction pour rafraîchir les conversations après la création
     const refreshConversations = async () => {

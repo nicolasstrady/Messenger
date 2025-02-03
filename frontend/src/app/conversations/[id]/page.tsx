@@ -3,7 +3,7 @@ import React, {useEffect, useState, useRef} from "react";
 import io from "socket.io-client";
 import {useUser} from "@/app/UserContext";
 import {useRouter, useSearchParams} from "next/navigation";
-import NotificationPopup, {Notification} from "@/app/components/NotificationPopup"; // ✅ Importation
+import NotificationPopup, {Notification} from "@/app/components/NotificationPopup";
 
 type Message = {
     id?: number;
@@ -27,6 +27,13 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
     const [title, setTitle] = useState("");
     const [typingUsers, setTypingUsers] = useState<{ userId: number, name: string }[]>([]);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!userId) {
+            router.push("/"); // Redirection si non connecté
+        }
+    }, [userId, router]);
 
     useEffect(() => {
         if (!resolvedParams.id) return;
@@ -193,23 +200,32 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
                 {messages.map((message) => {
                     const isCurrentUser = message.author_id === userId;
                     return (
-                        <div key={message.id} className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}>
-                            <div
-                                className={`p-2 my-2 rounded-lg max-w-xs ${
-                                    isCurrentUser ? "bg-blue-100 text-justify" : "bg-gray-200 text-justify"
-                                } break-words whitespace-pre-wrap`}
-                            >
-                                <p className="text-sm font-semibold">
+                        <div key={message.id}
+                            // className={`flex ${isCurrentUser ? "justify-end self-end" : "justify-start"}`}
+                             className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
+                        >
+                            {/*<div>*/}
+                            <div className="flex flex-row items-center gap-4">
+                                <p
+                                    className="text-sm font-semibold">
                                     {isCurrentUser ? "Vous" : `${message.first_name} ${message.last_name}`}
                                 </p>
+                                <p className="text-xs">{new Date(message.created_at).toLocaleTimeString()}</p>
+                            </div>
+                            <div
+                                className={`p-2 px-4 my-2 rounded-lg max-w-screen-lg ${
+                                    isCurrentUser ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
+                                } break-words whitespace-pre-wrap`}
+                            >
+
                                 <p>{message.content}</p>
                                 <span className="text-xs text-gray-500 block mt-1">
-                                    {new Date(message.created_at).toLocaleTimeString()} &nbsp;
                                     {message.status === "sent" && "Envoyé"}
                                     {message.status === "delivered" && "Reçu"}
-                                    {message.status === "read" && "Lu"}
+                                    {message.read_at && `Lu à ${new Date(message.read_at).toLocaleTimeString()}`}
                                 </span>
                             </div>
+                            {/*</div>*/}
                         </div>
                     );
                 })}
