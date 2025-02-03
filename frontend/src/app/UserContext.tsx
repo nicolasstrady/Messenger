@@ -35,24 +35,6 @@ export const UserProvider = ({children}: { children: React.ReactNode }) => {
     const [last_name, setLastName] = useState<string | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
-    // // 🔄 Récupération des notifications au chargement
-    // useEffect(() => {
-    //     if (!userId) return;
-    //
-    //     const fetchNotifications = async () => {
-    //         try {
-    //             const response = await fetch(`http://192.168.1.68:8000/notifications?userId=${userId}`);
-    //             const data = await response.json();
-    //             console.log('FETCH', data)
-    //             setNotifications(data);
-    //         } catch (error) {
-    //             console.error("Erreur lors de la récupération des notifications:", error);
-    //         }
-    //     };
-    //
-    //     fetchNotifications();
-    // }, [userId]);
-
     // 🔔 Connexion WebSocket pour les notifications en temps réel
     useEffect(() => {
         if (!userId) return;
