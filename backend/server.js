@@ -97,7 +97,7 @@ io.on('connection', (socket) => {
 
         try {
             const [result] = await pool.query(
-                "INSERT INTO messages (content, author_id, conversation_id, status) VALUES (?, ?, ?, 'sent')",
+                "INSERT INTO messages (content, author_id, conversation_id, status, created_at) VALUES (?, ?, ?, 'sent', CONVERT_TZ(NOW(), '+00:00', 'Europe/Paris'))",
                 [content, socket.userId, conversation_id]
             );
 
@@ -143,7 +143,7 @@ io.on('connection', (socket) => {
                 }
                 // Si l'utilisateur n'est pas connecté du tout, stocker la notification en base
                 await pool.query(
-                    "INSERT INTO notifications (user_id, conversation_id, message_id, created_at) VALUES (?, ?, ?, NOW())",
+                    "INSERT INTO notifications (user_id, conversation_id, message_id, created_at) VALUES (?, ?, ?, CONVERT_TZ(NOW(), '+00:00', 'Europe/Paris'))",
                     [participant.user_id, conversation_id, messageId]
                 );
             }
@@ -164,7 +164,7 @@ io.on('connection', (socket) => {
         try {
             const [rows] = await pool.query("SELECT author_id FROM messages WHERE id = ?", [messageId]);
             if (rows.length > 0 && rows[0].author_id !== readerId) {
-                await pool.query("UPDATE messages SET status = 'read', read_at = NOW() WHERE id = ?", [messageId]);
+                await pool.query("UPDATE messages SET status = 'read', read_at = CONVERT_TZ(NOW(), '+00:00', 'Europe/Paris') WHERE id = ?", [messageId]);
                 io.to(conversationId).emit('message_status', {
                     id: messageId,
                     status: 'read',

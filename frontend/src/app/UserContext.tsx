@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, {createContext, useContext, useState, useEffect} from "react";
 import io from "socket.io-client";
@@ -34,6 +34,21 @@ export const UserProvider = ({children}: { children: React.ReactNode }) => {
     const [first_name, setFirstName] = useState<string | null>(null);
     const [last_name, setLastName] = useState<string | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
+
+    // 🛠 Restaurer l'état utilisateur depuis localStorage au chargement
+    useEffect(() => {
+        const storedUserId = localStorage.getItem("userId");
+        const storedToken = localStorage.getItem("token");
+        const storedFirstName = localStorage.getItem("first_name");
+        const storedLastName = localStorage.getItem("last_name");
+
+        if (storedUserId && storedToken) {
+            setUserId(parseInt(storedUserId, 10));
+            setToken(storedToken);
+            setFirstName(storedFirstName || null);
+            setLastName(storedLastName || null);
+        }
+    }, []);
 
     // 🔔 Connexion WebSocket pour les notifications en temps réel
     useEffect(() => {
@@ -75,6 +90,8 @@ export const UserProvider = ({children}: { children: React.ReactNode }) => {
         setLastName(last_name);
         localStorage.setItem("userId", id.toString());
         localStorage.setItem("token", token);
+        localStorage.setItem("first_name", first_name);
+        localStorage.setItem("last_name", last_name);
     };
 
     // 🚪 Déconnexion
@@ -84,6 +101,8 @@ export const UserProvider = ({children}: { children: React.ReactNode }) => {
         setNotifications([]);
         localStorage.removeItem("userId");
         localStorage.removeItem("token");
+        localStorage.removeItem("first_name");
+        localStorage.removeItem("last_name");
     };
 
     return (

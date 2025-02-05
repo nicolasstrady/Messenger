@@ -20,24 +20,28 @@ type Message = {
 export default function ConversationPage({params}: { params: Promise<{ id: number }> }) {
     const resolvedParams = React.use(params);
     const [messages, setMessages] = useState<Message[]>([]);
+    const [lastReadMessage, setLastReadMessage] = useState<Message | null>(null);
     const [newMessage, setNewMessage] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [socket, setSocket] = useState<any>(null);
-    const {userId, first_name, last_name} = useUser();
+    const {userId, token, first_name, last_name} = useUser();
     const [title, setTitle] = useState("");
     const [typingUsers, setTypingUsers] = useState<{ userId: number, name: string }[]>([]);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true); // 🔄 État pour le skeleton
+
 
     useEffect(() => {
-        if (!userId) {
-            router.push("/"); // Redirection si non connecté
+        console.log(token);
+        if (!token && !isLoading) {
+            router.replace("/"); // Redirection si non connecté
         }
-    }, [userId, router]);
+    }, [token, router]);
 
     useEffect(() => {
         if (!resolvedParams.id) return;
-
+        if (!userId) return;
         const socketInstance = io("http://192.168.1.68:8081");
 
         socketInstance.on("connect", () => {
@@ -52,11 +56,11 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
             setMessages((prev) => [...prev, message]);
         });
 
-        socketInstance.on("message_status", ({id, status}) => {
-            console.log("Received message_status", id, status);
+        socketInstance.on("message_status", ({id, status, read_at}) => {
+            console.log("Received message_status", id, status, read_at);
             setMessages((prevMessages) =>
                 prevMessages.map((msg) =>
-                    msg.id === id ? {...msg, status} : msg
+                    msg.id === id ? {...msg, status, read_at} : msg
                 )
             );
         });
@@ -112,20 +116,13 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
 
         fetchConversationDetails();
         fetchMessages();
+        setIsLoading(false);
 
         return () => {
             socketInstance.disconnect();
             setSocket(null);
         };
-    }, [resolvedParams.id]);
-
-
-    // // 🔔 Suppression des notifications quand l'utilisateur ouvre la conversation
-    // useEffect(() => {
-    //     if (notifications.length > 0) {
-    //         setNotifications((prev) => prev.filter(notif => notif.conversation_id !== resolvedParams.id));
-    //     }
-    // }, [resolvedParams.id]);
+    }, [resolvedParams.id, userId]);
 
     useEffect(() => {
         if (messages.length > 0) {
@@ -155,7 +152,7 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
         const message: Message = {
             id: tempId,
             content: newMessage,
-            conversation_id: resolvedParams.id as number,
+            conversation_id: resolvedParams.id,
             author_id: userId,
             created_at: new Date().toISOString(),
             status: "sent",
@@ -187,76 +184,106 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
             }, 2000);
         }
     };
+    console.log(messages);
+
+    useEffect(() => {
+        const message = [...messages]
+            .reverse()
+            .find((msg) => msg.author_id === userId && msg.read_at);
+
+        setLastReadMessage(message ?? null);
+    }, [messages]);
+
+    useEffect(() => {
+        document.title = "Messenger | " + title;
+    }, [title]);
 
     return (
-        <div className="p-4">
-            {/* 🔔 Barre de navigation avec notifications */}
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">{title}</h1>
-                <NotificationPopup/> {/* ✅ Ajout de NotificationPopup */}
-            </div>
+        <>
+            <div className="p-4 h-[95vh]">
+                {/* 🔔 Barre de navigation avec notifications */}
+                <div className="flex justify-between items-center mb-4">
+                    <h1 className="text-2xl">{title}</h1>
+                    {/*<NotificationPopup/> /!* ✅ Ajout de NotificationPopup *!/*/}
+                </div>
 
-            <div className="border rounded-lg p-4 h-[80vh] overflow-y-auto flex flex-col">
-                {messages.map((message) => {
-                    const isCurrentUser = message.author_id === userId;
-                    return (
-                        <div key={message.id}
-                            // className={`flex ${isCurrentUser ? "justify-end self-end" : "justify-start"}`}
-                             className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
-                        >
-                            {/*<div>*/}
-                            <div className="flex flex-row items-center gap-4">
-                                <p
-                                    className="text-sm font-semibold">
-                                    {isCurrentUser ? "Vous" : `${message.first_name} ${message.last_name}`}
-                                </p>
-                                <p className="text-xs">{new Date(message.created_at).toLocaleTimeString()}</p>
-                            </div>
-                            <div
-                                className={`p-2 px-4 my-2 rounded-lg max-w-screen-lg ${
-                                    isCurrentUser ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
-                                } break-words whitespace-pre-wrap`}
+                <div className="bg-white rounded-lg p-4 h-[80vh] overflow-y-auto flex flex-col">
+                    {messages.map((message, index) => {
+                        const isCurrentUser = message.author_id === userId;
+                        const isLastRead = lastReadMessage?.id === message.id;
+                        const previousMessage = messages[index - 1];
+                        const isDifferentAuthor = !previousMessage || previousMessage.author_id !== message.author_id;
+
+                        return (
+                            <div key={message.id}
+                                // className={`flex ${isCurrentUser ? "justify-end self-end" : "justify-start"}`}
+                                 className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
                             >
+                                {/*<div>*/}
+                                {isDifferentAuthor && (
 
-                                <p>{message.content}</p>
-                                <span className="text-xs text-gray-500 block mt-1">
-                                    {message.status === "sent" && "Envoyé"}
-                                    {message.status === "delivered" && "Reçu"}
-                                    {message.read_at && `Lu à ${new Date(message.read_at).toLocaleTimeString()}`}
-                                </span>
+                                    <div className="flex flex-row items-center gap-1 mt-4 mb-1">
+                                        <p
+                                            className="text-sm font-semibold">
+                                            {isCurrentUser ? "Vous" : `${message.first_name}`}
+                                        </p>
+                                        <p className="text-xs">{new Date(message.created_at).toLocaleDateString()}</p>
+                                    </div>
+                                )}
+                                <div className={`flex gap-2 ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}>
+                                    <p className={`text-xs text-gray-500 self-center`}>{new Date(message.created_at).toLocaleTimeString()}</p>
+
+                                    <div
+                                        className={`p-2 px-4 my-1 rounded-lg max-w-lg ${
+                                            isCurrentUser ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
+                                        } break-words whitespace-pre-wrap`}
+                                    >
+                                        <p>{message.content}</p>
+                                        {isCurrentUser && (
+                                            (message.status === "sent" || message.status === "delivered" || (isLastRead && message.read_at)) && (
+                                                <span className="text-xs text-blue-900 font-semibold block mb-1">
+                                        {message.status === "sent" && "Envoyé"}
+                                                    {message.status === "delivered" && "Distribué"}
+                                                    {isLastRead && message.read_at ? `Lu à ${new Date(message.read_at).toLocaleTimeString()}` : ""}
+                                     </span>
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                                {/*</div>*/}
                             </div>
-                            {/*</div>*/}
-                        </div>
-                    );
-                })}
-                <div ref={messagesEndRef}/>
-            </div>
-            {typingUsers.length > 0 && (
-                <p className="text-sm text-gray-500 mt-2">
-                    {typingUsers.map(user => user.name).join(", ")} {typingUsers.length > 1 ? "sont" : "est"} en train
-                    d'écrire...
-                </p>
-            )}
+                        );
+                    })}
+                    {typingUsers.length > 0 && (
+                        <p className="text-sm text-gray-500 mt-2">
+                            {typingUsers.map(user => user.name).join(", ")} {typingUsers.length > 1 ? "sont" : "est"} en
+                            train
+                            d'écrire...
+                        </p>
+                    )}
+                    <div ref={messagesEndRef}/>
+                </div>
 
-            <form
-                className="mt-4 flex"
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSendMessage();
-                }}
-            >
-                <input
-                    type="text"
-                    className="flex-grow border rounded-l-lg p-2"
-                    value={newMessage}
-                    onChange={(e) => {
-                        setNewMessage(e.target.value);
-                        handleTyping();
+                <form
+                    className="mt-4 flex"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSendMessage();
                     }}
-                    placeholder="Tapez votre message..."
-                />
-                <button type="submit" className="bg-blue-500 text-white px-4 rounded-r-lg">Envoyer</button>
-            </form>
-        </div>
+                >
+                    <input
+                        type="text"
+                        className="flex-grow border rounded-l-lg p-2"
+                        value={newMessage}
+                        onChange={(e) => {
+                            setNewMessage(e.target.value);
+                            handleTyping();
+                        }}
+                        placeholder="Tapez votre message..."
+                    />
+                    <button type="submit" className="bg-blue-500 text-white px-4 rounded-r-lg">Envoyer</button>
+                </form>
+            </div>
+        </>
     );
 }

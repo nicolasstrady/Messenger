@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import {useUser} from "./UserContext";
 
@@ -42,6 +42,10 @@ export default function Home() {
             console.error(err);
         }
     };
+
+    useEffect(() => {
+        document.title = "Messenger | Connexion";
+    }, []);
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
