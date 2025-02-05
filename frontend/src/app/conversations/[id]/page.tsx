@@ -227,25 +227,23 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
                                     <p className="text-xs">{new Date(message.created_at).toLocaleDateString()}</p>
                                 </div>
                             )}
-                            <div className={`flex gap-2 ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}>
-                                <p className={`text-xs text-gray-500 self-center`}>{new Date(message.created_at).toLocaleTimeString()}</p>
+                            {/*<p className={`text-xs text-gray-500 self-center`}>{new Date(message.created_at).toLocaleTimeString()}</p>*/}
 
-                                <div
-                                    className={`p-2 px-4 my-1 rounded-lg max-w-lg ${
-                                        isCurrentUser ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
-                                    } break-words whitespace-pre-wrap`}
-                                >
-                                    <p>{message.content}</p>
-                                    {isCurrentUser && (
-                                        (message.status === "sent" || message.status === "delivered" || (isLastRead && message.read_at)) && (
-                                            <span className="text-xs text-blue-900 font-semibold block mb-1">
+                            <div
+                                className={`p-2 px-4 my-1 rounded-lg max-w-lg ${
+                                    isCurrentUser ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
+                                } break-words whitespace-pre-wrap`}
+                            >
+                                <p>{message.content}</p>
+                                {isCurrentUser && (
+                                    (message.status === "sent" || message.status === "delivered" || (isLastRead && message.read_at)) && (
+                                        <span className="text-xs text-blue-900 font-semibold block mb-1">
                                         {message.status === "sent" && "Envoyé"}
-                                                {message.status === "delivered" && "Distribué"}
-                                                {isLastRead && message.read_at ? `Lu à ${new Date(message.read_at).toLocaleTimeString()}` : ""}
+                                            {message.status === "delivered" && "Distribué"}
+                                            {isLastRead && message.read_at ? `Lu à ${new Date(message.read_at).toLocaleTimeString()}` : ""}
                                      </span>
-                                        )
-                                    )}
-                                </div>
+                                    )
+                                )}
                             </div>
                             {/*</div>*/}
                         </div>

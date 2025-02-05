@@ -157,14 +157,13 @@ const Page = () => {
                                             onClick={() => clearNotification(conversation.id)}
                                         >
                                             <div
-                                                className="rounded-lg p-3 hover:bg-gray-100 bg-blue-100 cursor-pointer transition duration-200 flex justify-between items-start"
+                                                className="rounded-lg p-3 hover:bg-gray-100 bg-white cursor-pointer transition duration-200 flex justify-between items-start"
                                             >
                                                 <div className="flex flex-col">
                                                     <h4 className="text-lg font-semibold">{conversation.name}</h4>
                                                     {conversation.last_message && (
                                                         <p className="text-sm text-gray-600 mt-1">
-                                                    <span
-                                                        className="font-semibold">{conversation.last_message_author_first_name} {conversation.last_message_author_last_name} :</span> {conversation.last_message}
+                                                            <span>{conversation.last_message_author_first_name} :</span> {conversation.last_message}
                                                         </p>
                                                     )}
                                                 </div>
