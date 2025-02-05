@@ -3,8 +3,7 @@ import React, {useEffect, useLayoutEffect, useState} from "react";
 import Link from "next/link";
 import io from "socket.io-client";
 import {useUser} from "@/app/UserContext";
-import NotificationPopup, {Notification} from "@/app/components/NotificationPopup";
-import CreateConversation from "@/app/components/CreateConversation";
+import CreateConversation from "@/components/CreateConversation";
 import {useRouter} from "next/navigation";
 
 type Conversation = {
@@ -158,7 +157,7 @@ const Page = () => {
                                             onClick={() => clearNotification(conversation.id)}
                                         >
                                             <div
-                                                className="rounded-lg p-3 hover:bg-gray-100 bg-white cursor-pointer transition duration-200 flex justify-between items-start"
+                                                className="rounded-lg p-3 hover:bg-gray-100 bg-blue-100 cursor-pointer transition duration-200 flex justify-between items-start"
                                             >
                                                 <div className="flex flex-col">
                                                     <h4 className="text-lg font-semibold">{conversation.name}</h4>

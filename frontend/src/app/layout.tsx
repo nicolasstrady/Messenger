@@ -1,8 +1,8 @@
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import {UserProvider} from "@/app/UserContext";
-import NotificationPopup from "@/app/components/NotificationPopup";
-import LogoutButton from "@/app/components/LogoutButton";
+import NotificationPopup from "@/components/NotificationPopup";
+import LogoutButton from "@/components/LogoutButton";
 import Favicon from "./favicon.ico"
 
 
@@ -34,16 +34,7 @@ export default function RootLayout({children}: { children: React.ReactNode }) {
         </head>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <UserProvider>
-            <nav className="navbar navbar-expand-lg p-2 navbar-dark bg-blue-400">
-                <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold">Messenger</h1>
-                    <div className="flex gap-4">
-                        <NotificationPopup/>
-                        <LogoutButton/>
-                    </div>
-                </div>
-            </nav>
-            <div className="bg-blue-200">{children}</div>
+            {children}
         </UserProvider>
         </body>
         </html>

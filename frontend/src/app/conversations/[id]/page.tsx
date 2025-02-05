@@ -3,7 +3,6 @@ import React, {useEffect, useState, useRef} from "react";
 import io from "socket.io-client";
 import {useUser} from "@/app/UserContext";
 import {useRouter, useSearchParams} from "next/navigation";
-import NotificationPopup, {Notification} from "@/app/components/NotificationPopup";
 
 type Message = {
     id?: number;
@@ -199,91 +198,88 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
     }, [title]);
 
     return (
-        <>
-            <div className="p-4 h-[95vh]">
-                {/* 🔔 Barre de navigation avec notifications */}
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl">{title}</h1>
-                    {/*<NotificationPopup/> /!* ✅ Ajout de NotificationPopup *!/*/}
-                </div>
-
-                <div className="bg-white rounded-lg p-4 h-[80vh] overflow-y-auto flex flex-col">
-                    {messages.map((message, index) => {
-                        const isCurrentUser = message.author_id === userId;
-                        const isLastRead = lastReadMessage?.id === message.id;
-                        const previousMessage = messages[index - 1];
-                        const isDifferentAuthor = !previousMessage || previousMessage.author_id !== message.author_id;
-
-                        return (
-                            <div key={message.id}
-                                // className={`flex ${isCurrentUser ? "justify-end self-end" : "justify-start"}`}
-                                 className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
-                            >
-                                {/*<div>*/}
-                                {isDifferentAuthor && (
-
-                                    <div className="flex flex-row items-center gap-1 mt-4 mb-1">
-                                        <p
-                                            className="text-sm font-semibold">
-                                            {isCurrentUser ? "Vous" : `${message.first_name}`}
-                                        </p>
-                                        <p className="text-xs">{new Date(message.created_at).toLocaleDateString()}</p>
-                                    </div>
-                                )}
-                                <div className={`flex gap-2 ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}>
-                                    <p className={`text-xs text-gray-500 self-center`}>{new Date(message.created_at).toLocaleTimeString()}</p>
-
-                                    <div
-                                        className={`p-2 px-4 my-1 rounded-lg max-w-lg ${
-                                            isCurrentUser ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
-                                        } break-words whitespace-pre-wrap`}
-                                    >
-                                        <p>{message.content}</p>
-                                        {isCurrentUser && (
-                                            (message.status === "sent" || message.status === "delivered" || (isLastRead && message.read_at)) && (
-                                                <span className="text-xs text-blue-900 font-semibold block mb-1">
-                                        {message.status === "sent" && "Envoyé"}
-                                                    {message.status === "delivered" && "Distribué"}
-                                                    {isLastRead && message.read_at ? `Lu à ${new Date(message.read_at).toLocaleTimeString()}` : ""}
-                                     </span>
-                                            )
-                                        )}
-                                    </div>
-                                </div>
-                                {/*</div>*/}
-                            </div>
-                        );
-                    })}
-                    {typingUsers.length > 0 && (
-                        <p className="text-sm text-gray-500 mt-2">
-                            {typingUsers.map(user => user.name).join(", ")} {typingUsers.length > 1 ? "sont" : "est"} en
-                            train
-                            d'écrire...
-                        </p>
-                    )}
-                    <div ref={messagesEndRef}/>
-                </div>
-
-                <form
-                    className="mt-4 flex"
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        handleSendMessage();
-                    }}
-                >
-                    <input
-                        type="text"
-                        className="flex-grow border rounded-l-lg p-2"
-                        value={newMessage}
-                        onChange={(e) => {
-                            setNewMessage(e.target.value);
-                            handleTyping();
-                        }}
-                        placeholder="Tapez votre message..."
-                    />
-                    <button type="submit" className="bg-blue-500 text-white px-4 rounded-r-lg">Envoyer</button>
-                </form>
+        <div className="p-4">
+            {/* 🔔 Barre de navigation avec notifications */}
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl">{title}</h1>
             </div>
-        </>
+
+            <div className="bg-white rounded-lg p-4 h-[80vh] overflow-y-auto flex flex-col">
+                {messages.map((message, index) => {
+                    const isCurrentUser = message.author_id === userId;
+                    const isLastRead = lastReadMessage?.id === message.id;
+                    const previousMessage = messages[index - 1];
+                    const isDifferentAuthor = !previousMessage || previousMessage.author_id !== message.author_id;
+
+                    return (
+                        <div key={message.id}
+                            // className={`flex ${isCurrentUser ? "justify-end self-end" : "justify-start"}`}
+                             className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"}`}
+                        >
+                            {/*<div>*/}
+                            {isDifferentAuthor && (
+
+                                <div className="flex flex-row items-center gap-1 mt-4 mb-1">
+                                    <p
+                                        className="text-sm font-semibold">
+                                        {isCurrentUser ? "Vous" : `${message.first_name}`}
+                                    </p>
+                                    <p className="text-xs">{new Date(message.created_at).toLocaleDateString()}</p>
+                                </div>
+                            )}
+                            <div className={`flex gap-2 ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}>
+                                <p className={`text-xs text-gray-500 self-center`}>{new Date(message.created_at).toLocaleTimeString()}</p>
+
+                                <div
+                                    className={`p-2 px-4 my-1 rounded-lg max-w-lg ${
+                                        isCurrentUser ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
+                                    } break-words whitespace-pre-wrap`}
+                                >
+                                    <p>{message.content}</p>
+                                    {isCurrentUser && (
+                                        (message.status === "sent" || message.status === "delivered" || (isLastRead && message.read_at)) && (
+                                            <span className="text-xs text-blue-900 font-semibold block mb-1">
+                                        {message.status === "sent" && "Envoyé"}
+                                                {message.status === "delivered" && "Distribué"}
+                                                {isLastRead && message.read_at ? `Lu à ${new Date(message.read_at).toLocaleTimeString()}` : ""}
+                                     </span>
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                            {/*</div>*/}
+                        </div>
+                    );
+                })}
+                {typingUsers.length > 0 && (
+                    <p className="text-sm text-gray-500 mt-2">
+                        {typingUsers.map(user => user.name).join(", ")} {typingUsers.length > 1 ? "sont" : "est"} en
+                        train
+                        d'écrire...
+                    </p>
+                )}
+                <div ref={messagesEndRef}/>
+            </div>
+
+            <form
+                className="mt-4 flex"
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                }}
+            >
+                <input
+                    type="text"
+                    className="flex-grow border rounded-l-lg p-2"
+                    value={newMessage}
+                    onChange={(e) => {
+                        setNewMessage(e.target.value);
+                        handleTyping();
+                    }}
+                    placeholder="Tapez votre message..."
+                />
+                <button type="submit" className="bg-blue-500 text-white px-4 rounded-r-lg">Envoyer</button>
+            </form>
+        </div>
     );
 }
