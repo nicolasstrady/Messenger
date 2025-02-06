@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\controllers;
 
 use App\models\Notification;
 use App\models\User;
@@ -11,36 +11,67 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../database/connection.php';
+require_once __DIR__ . '/../utils/ImageUploader.php'; // Assure-toi que le chemin est correct
 
 class UserController
 {
 // Méthode pour l'enregistrement d'un utilisateur
     public static function register(Request $request, Response $response, array $args): Response
     {
-        // Récupérer les données envoyées dans le corps de la requête
-        $data = json_decode($request->getBody(), true);
 
-        // Vérifier si toutes les données nécessaires sont présentes
-        if (!isset($data['email']) || !isset($data['password']) || !isset($data['username']) || !isset($data['first_name']) || !isset($data['last_name'])) {
+        // Récupérer les données de formulaire
+        $data = $request->getParsedBody();
+
+        // Récupérer les champs envoyés
+        $email = $data['email'] ?? null;
+        $password = $data['password'] ?? null;
+        $username = $data['username'] ?? null;
+        $firstName = $data['first_name'] ?? null;
+        $lastName = $data['last_name'] ?? null;
+
+        // Vérifier les champs obligatoires
+        if (!$email || !$password || !$username || !$firstName || !$lastName) {
             $response->getBody()->write(json_encode(['error' => 'Email, password, username, first name, and last name are required.']));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
+        // Vérifier si une image a été envoyée
+        $imageUrl = null;
+        $uploadedFiles = $request->getUploadedFiles();
+        if (isset($uploadedFiles['profile_image']) && $uploadedFiles['profile_image']->getError() === UPLOAD_ERR_OK) {
+            $file = $uploadedFiles['profile_image'];
+            $fileName = uniqid() . '-' . basename($file->getClientFilename()); // Générer un nom unique pour le fichier
+            $filePath = $file->getStream()->getMetadata('uri'); // Chemin temporaire du fichier
+
+            $imageUrl = uploadFileToS3($filePath, $fileName);
+            if (!$imageUrl) {
+                $response->getBody()->write(json_encode(['error' => 'Failed to upload profile image.']));
+                return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+            }
+        }
+
         $email = $data['email'];
-        $password = password_hash($data['password'], PASSWORD_BCRYPT); // Hachage du mot de passe
+        $password = password_hash($data['password'], PASSWORD_BCRYPT);
         $username = $data['username'];
         $firstName = $data['first_name'];
         $lastName = $data['last_name'];
 
-        // Se connecter à la base de données
+        // Connexion à la base de données
         $pdo = getDatabaseConnection();
 
-        // Créer l'utilisateur dans la base de données
         try {
-            $userId = User::create($pdo, $email, $password, $username, $firstName, $lastName);
+            // Créer l'utilisateur en enregistrant l'image de profil
+            $userId = User::create($pdo, $email, $password, $username, $firstName, $lastName, $imageUrl);
 
-            // Retourner une réponse avec l'ID de l'utilisateur créé
-            $response->getBody()->write(json_encode(['id' => $userId, 'email' => $email, 'username' => $username, 'first_name' => $firstName, 'last_name' => $lastName]));
+            // Retourner l'utilisateur créé
+            $response->getBody()->write(json_encode([
+                'id' => $userId,
+                'email' => $email,
+                'username' => $username,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'profile_image' => $imageUrl
+            ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
         } catch (\Exception $e) {
             $response->getBody()->write(json_encode(['error' => 'Failed to register user.']));

@@ -4,7 +4,8 @@
         "slim/slim": "^4.14",
         "slim/psr7": "^1.7",
         "firebase/php-jwt": "^6.11",
-      "ext-pdo": "*"
+      "ext-pdo": "*",
+        "aws/aws-sdk-php": "^3.339"
     },
     "autoload": {
         "psr-4": {
