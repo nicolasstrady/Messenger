@@ -36,7 +36,7 @@ const NotificationPopup: React.FC = () => {
 
             {/* Modal de notifications */}
             {isNotificationModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white rounded-lg shadow-lg p-6 w-96 relative">
                         <button
                             onClick={() => setIsNotificationModalOpen(false)}

@@ -14,8 +14,24 @@
     }
 }
 
-/*body {*/
-/*    color: var(--foreground);*/
-/*    background: var(--background);*/
-/*    font-family: Arial, Helvetica, sans-serif;*/
-/*}*/
+/* Appliquer une scrollbar fine sans les flèches et avec bords arrondis */
+.scrollbar-custom::-webkit-scrollbar {
+    width: 8px; /* Largeur de la scrollbar */
+    height: 8px; /* Hauteur pour les scrollbars horizontales */
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3); /* Couleur de la barre */
+    border-radius: 10px; /* Bords arrondis */
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+    background: transparent; /* Fond transparent */
+}
+
+.scrollbar-custom::-webkit-scrollbar-button {
+    display: none; /* Cache les flèches en haut et en bas */
+}
+
+
+
