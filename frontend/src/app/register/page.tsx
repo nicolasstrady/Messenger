@@ -10,17 +10,27 @@ const RegisterPage = () => {
     const [password, setPassword] = useState("");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+    const [profileImage, setProfileImage] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
 
+        const formDataToSend = new FormData();
+        formDataToSend.append('email', email);
+        formDataToSend.append('password', password);
+        formDataToSend.append('username', userName);
+        formDataToSend.append('first_name', firstName);
+        formDataToSend.append('last_name', lastName);
+        if (profileImage) {
+            formDataToSend.append('profile_image', profileImage); // Ajouter l'image à FormData
+        }
+
         try {
             const response = await fetch("http://192.168.1.68:8000/register", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({email, password, username: userName, first_name: firstName, last_name: lastName}),
+                body: formDataToSend, // Envoi de FormData
             });
 
             const data = await response.json();
@@ -34,6 +44,11 @@ const RegisterPage = () => {
         } catch (err) {
             setError("Impossible de se connecter au serveur.");
         }
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files ? e.target.files[0] : null;
+        setProfileImage(file); // Stocke l'image dans l'état
     };
 
     return (
@@ -111,6 +126,16 @@ const RegisterPage = () => {
                             className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring focus:ring-red-300"
                             placeholder="Votre mot de passe"
                             required
+                        />
+                    </div>
+
+                    {/* Champ Image de Profil */}
+                    <div>
+                        <label className="block text-gray-700 font-medium">Image de Profil</label>
+                        <input
+                            type="file"
+                            onChange={handleImageChange}
+                            className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring focus:ring-red-300"
                         />
                     </div>
 
