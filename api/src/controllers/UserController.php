@@ -112,7 +112,7 @@ class UserController
                 $jwt = JWT::encode($payload, $key, 'HS256');
 
                 // Retourner le jeton
-                $response->getBody()->write(json_encode(['token' => $jwt, 'userId' => $user->id, 'user_first_name' => $user->first_name, 'user_last_name' => $user->last_name]));
+                $response->getBody()->write(json_encode(['token' => $jwt, 'userId' => $user->id, 'user_first_name' => $user->first_name, 'user_last_name' => $user->last_name, 'user_profile_image' => $user->profileImage]));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
             } else {
                 $response->getBody()->write(json_encode(['error' => 'Invalid credentials.']));

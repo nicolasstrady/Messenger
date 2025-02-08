@@ -51,6 +51,12 @@ const RegisterPage = () => {
         setProfileImage(file); // Stocke l'image dans l'état
     };
 
+    const handleRemoveImage = () => {
+        setProfileImage(null); // Supprime l'image actuelle
+    };
+
+    const imageUrl = profileImage ? URL.createObjectURL(profileImage) : "/avatar.png";
+
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
             <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
@@ -59,6 +65,36 @@ const RegisterPage = () => {
                 {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Avatar avec possibilité de changer l'image */}
+                    <div className="flex flex-col items-center mb-4">
+                        <div className="relative">
+                            <img
+                                src={imageUrl}
+                                alt="Avatar"
+                                className="w-24 h-24 rounded-full object-cover"
+                            />
+                            <label htmlFor="profile-image"
+                                   className="absolute bottom-0 right-0 bg-white p-2 rounded-full cursor-pointer shadow-md">
+                                <span className="text-xl text-gray-700">+</span>
+                            </label>
+                            <input
+                                type="file"
+                                id="profile-image"
+                                onChange={handleImageChange}
+                                className="hidden"
+                            />
+                        </div>
+                        {profileImage && (
+                            <button
+                                type="button"
+                                onClick={handleRemoveImage}
+                                className="mt-2 text-red-600 hover:underline"
+                            >
+                                Supprimer l'image
+                            </button>
+                        )}
+                    </div>
+
                     {/* Champ Prénom */}
                     <div>
                         <label className="block text-gray-700 font-medium">Prénom</label>
@@ -126,16 +162,6 @@ const RegisterPage = () => {
                             className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring focus:ring-red-300"
                             placeholder="Votre mot de passe"
                             required
-                        />
-                    </div>
-
-                    {/* Champ Image de Profil */}
-                    <div>
-                        <label className="block text-gray-700 font-medium">Image de Profil</label>
-                        <input
-                            type="file"
-                            onChange={handleImageChange}
-                            className="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring focus:ring-red-300"
                         />
                     </div>
 

@@ -8,13 +8,22 @@ class Conversation
 {
     public int $id;
     public string $name;
+    public array $profile_image;
+    public ?string $last_message;
+    public ?string $last_message_at;
+    public ?string $last_message_author_first_name;
+    public ?string $last_message_author_last_name;
+    public string $type;
+    public int $current_user_id;
+
 
     public static function findByUser(PDO $pdo, int $userId): array
     {
         $sql = "
             SELECT
                 c1.id AS id,
-                COALESCE(c1.name, GROUP_CONCAT(DISTINCT u.first_name ORDER BY u.first_name SEPARATOR ', ')) AS name,
+                COALESCE(c1.name, GROUP_CONCAT(DISTINCT CONCAT(u.first_name, ' ', u.last_name) ORDER BY u.first_name SEPARATOR ', ')) AS name,
+                GROUP_CONCAT(IFNULL(u.profile_image, '') ORDER BY u.first_name SEPARATOR ',') AS profile_images,
                 c1.type AS type,
                 p1.user_id AS current_user_id,
                 m.content AS last_message,
@@ -45,15 +54,40 @@ class Conversation
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['user_id' => $userId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $conversations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $listConversations = [];
+
+        foreach ($conversations as $conv) {
+            $objectConv = new Conversation();
+            $objectConv->id = $conv['id'];
+            $objectConv->name = $conv['name'];
+            $objectConv->profile_image = [
+                'url' => explode(',', $conv['profile_images']),
+                'alt' => explode(', ', $conv['name']),
+            ];            $objectConv->last_message = $conv['last_message'];
+            $objectConv->last_message_at = $conv['last_message_at'];
+            $objectConv->last_message_author_first_name = $conv['last_message_author_first_name'];
+            $objectConv->last_message_author_last_name = $conv['last_message_author_last_name'];
+            $objectConv->type = $conv['type'];
+            $objectConv->current_user_id = $conv['current_user_id'];
+
+            $listConversations[] = $objectConv;
+
+        }
+
+
+        return $listConversations;
+
+//        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function findById(PDO $pdo, int $id, int $userId): array
+    public static function findById(PDO $pdo, int $id, int $userId): Conversation
     {
         $sql = "
             SELECT
                 c1.id AS id,
-                COALESCE(c1.name, GROUP_CONCAT(DISTINCT u.first_name ORDER BY u.first_name SEPARATOR ', ')) AS name,
+                COALESCE(c1.name, GROUP_CONCAT(DISTINCT CONCAT(u.first_name, ' ', u.last_name) ORDER BY u.first_name SEPARATOR ', ')) AS name,
+                GROUP_CONCAT(IFNULL(u.profile_image, '') ORDER BY u.first_name SEPARATOR ',') AS profile_images,
                 c1.type AS type,
                 p1.user_id AS current_user_id
             FROM
@@ -74,7 +108,19 @@ class Conversation
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['id' => $id, 'user_id' => $userId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $conv = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $objectConv = new Conversation();
+        $objectConv->id = $conv['id'];
+        $objectConv->name = $conv['name'];
+        $objectConv->profile_image = [
+            'url' => explode(',', $conv['profile_images']),
+            'alt' => explode(', ', $conv['name']),
+        ];
+        $objectConv->type = $conv['type'];
+        $objectConv->current_user_id = $conv['current_user_id'];
+
+        return $objectConv;
     }
 
 

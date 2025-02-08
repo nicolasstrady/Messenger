@@ -41,10 +41,10 @@ class ConversationController
         $pdo = getDatabaseConnection();
 
         // Récupérer les conversations de l'utilisateur
-        $conversations = Conversation::findById($pdo, $id, $userId);
+        $conversation = Conversation::findById($pdo, $id, $userId);
 
         // Encoder en JSON et écrire dans le corps de la réponse
-        $response->getBody()->write(json_encode($conversations));
+        $response->getBody()->write(json_encode($conversation));
 
         // Ajouter le bon type de contenu et retourner la réponse
         return $response->withHeader('Content-Type', 'application/json');

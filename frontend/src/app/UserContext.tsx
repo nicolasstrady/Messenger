@@ -21,7 +21,8 @@ type UserContextType = {
     first_name: string | null;
     last_name: string | null;
     notifications: Notification[];
-    setUser: (id: number, token: string, first_name: string, last_name: string) => void;
+    profile_image: string | null;
+    setUser: (id: number, token: string, first_name: string, last_name: string, profile_image: string) => void;
     logout: () => void;
     clearNotification: (conversationId: number) => void;
 };
@@ -34,6 +35,8 @@ export const UserProvider = ({children}: { children: React.ReactNode }) => {
     const [first_name, setFirstName] = useState<string | null>(null);
     const [last_name, setLastName] = useState<string | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [profile_image, setProfileImage] = useState<string | null>(null);
+
 
     // 🛠 Restaurer l'état utilisateur depuis localStorage au chargement
     useEffect(() => {
@@ -41,12 +44,14 @@ export const UserProvider = ({children}: { children: React.ReactNode }) => {
         const storedToken = localStorage.getItem("token");
         const storedFirstName = localStorage.getItem("first_name");
         const storedLastName = localStorage.getItem("last_name");
+        const storedProfileImage = localStorage.getItem("profile_image");
 
         if (storedUserId && storedToken) {
             setUserId(parseInt(storedUserId, 10));
             setToken(storedToken);
             setFirstName(storedFirstName || null);
             setLastName(storedLastName || null);
+            setProfileImage(storedProfileImage || null);
         }
     }, []);
 
@@ -83,31 +88,48 @@ export const UserProvider = ({children}: { children: React.ReactNode }) => {
     };
 
     // 🆔 Connexion utilisateur
-    const setUser = (id: number, token: string, first_name: string, last_name: string) => {
+    const setUser = (id: number, token: string, first_name: string, last_name: string, profile_image: string) => {
         setUserId(id);
         setToken(token);
         setFirstName(first_name);
         setLastName(last_name);
+        setProfileImage(profile_image);
+
         localStorage.setItem("userId", id.toString());
         localStorage.setItem("token", token);
         localStorage.setItem("first_name", first_name);
         localStorage.setItem("last_name", last_name);
+        localStorage.setItem("profile_image", profile_image);
     };
 
     // 🚪 Déconnexion
     const logout = () => {
         setUserId(null);
         setToken(null);
+        setFirstName(null);
+        setLastName(null);
+        setProfileImage(null);
         setNotifications([]);
         localStorage.removeItem("userId");
         localStorage.removeItem("token");
         localStorage.removeItem("first_name");
         localStorage.removeItem("last_name");
+        localStorage.removeItem("profile_image");
     };
 
     return (
         <UserContext.Provider
-            value={{userId, token, first_name, last_name, notifications, setUser, logout, clearNotification}}>
+            value={{
+                userId,
+                token,
+                first_name,
+                last_name,
+                notifications,
+                profile_image,
+                setUser,
+                logout,
+                clearNotification
+            }}>
             {children}
         </UserContext.Provider>
     );

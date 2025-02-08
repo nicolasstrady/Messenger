@@ -89,7 +89,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const {content, conversation_id} = data;
+        const {content, conversation_id, profile_image} = data;
         if (!content || !conversation_id) {
             socket.emit('error', {message: 'Missing content or conversationId'});
             return;
@@ -103,6 +103,8 @@ io.on('connection', (socket) => {
 
             const messageId = result.insertId;
 
+            console.log(socket.firstName, socket.lastName);
+
             const message = {
                 id: messageId,
                 content,
@@ -112,6 +114,7 @@ io.on('connection', (socket) => {
                 status: 'sent',
                 first_name: socket.firstName,
                 last_name: socket.lastName,
+                profile_image: profile_image,
             };
 
             socket.to(conversation_id).emit('message', message);

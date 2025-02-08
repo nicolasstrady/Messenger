@@ -5,6 +5,9 @@ import io from "socket.io-client";
 import {useUser} from "@/app/UserContext";
 import CreateConversation from "@/components/CreateConversation";
 import {useRouter} from "next/navigation";
+import {Avatar, AvatarGroup} from "@mui/material";
+import {deepPurple} from '@mui/material/colors';
+import {stringAvatar} from "@/utils/AvatarUtils";
 
 type Conversation = {
     name: string;
@@ -13,6 +16,7 @@ type Conversation = {
     last_message_at?: string;
     last_message_author_first_name?: string;
     last_message_author_last_name?: string;
+    profile_image?: { url: string[], alt: string[] };
 };
 
 const Page = () => {
@@ -159,13 +163,25 @@ const Page = () => {
                                             <div
                                                 className="rounded-lg p-3 hover:bg-gray-100 bg-white cursor-pointer transition duration-200 flex justify-between items-start"
                                             >
-                                                <div className="flex flex-col">
-                                                    <h4 className="text-lg font-semibold">{conversation.name}</h4>
-                                                    {conversation.last_message && (
-                                                        <p className="text-sm text-gray-600 mt-1">
-                                                            <span>{conversation.last_message_author_first_name} :</span> {conversation.last_message}
-                                                        </p>
-                                                    )}
+                                                <div className="flex flex-row gap-2">
+                                                    <AvatarGroup spacing="small" max={3} className="self-center">
+                                                        {conversation.profile_image?.url?.map((url: string, index) => {
+                                                            return (
+                                                                <Avatar
+                                                                    key={index} src={url}
+                                                                    {...stringAvatar(conversation.profile_image?.alt[index] ?? "")}>
+                                                                </Avatar>
+                                                            );
+                                                        })}
+                                                    </AvatarGroup>
+                                                    <div className="flex flex-col">
+                                                        <h4 className="text-lg font-semibold">{conversation.name}</h4>
+                                                        {conversation.last_message && (
+                                                            <p className="text-sm text-gray-600 mt-1">
+                                                                <span>{conversation.last_message_author_first_name} :</span> {conversation.last_message}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 {/* 🔴 Affichage du compteur de messages non lus */}
                                                 {unreadMessagesCount > 0 && (

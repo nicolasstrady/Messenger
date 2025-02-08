@@ -33,7 +33,7 @@ export default function Home() {
             const data = await response.json();
 
             // Stocker les données utilisateur dans le contexte
-            setUser(data.userId, data.token, data.user_first_name, data.user_last_name); // Stocke l'userId et le token
+            setUser(data.userId, data.token, data.user_first_name, data.user_last_name, data.user_profile_image); // Stocke l'userId et le token
 
             // Rediriger vers la page des conversations
             router.push("/conversations");

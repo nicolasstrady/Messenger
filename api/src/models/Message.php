@@ -23,8 +23,8 @@ class Message
                                     mes.read_at AS read_at,
                                     mes.status AS status,
                                     us.first_name AS first_name,
-                                    us.last_name AS last_name
-
+                                    us.last_name AS last_name,
+                                    us.profile_image AS profile_image
 
                                 FROM messages mes
                                 INNER JOIN conversations co ON mes.conversation_id = co.id

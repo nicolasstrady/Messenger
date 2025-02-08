@@ -3,6 +3,8 @@ import React, {useEffect, useState, useRef} from "react";
 import io from "socket.io-client";
 import {useUser} from "@/app/UserContext";
 import {useRouter, useSearchParams} from "next/navigation";
+import {Avatar, AvatarGroup} from "@mui/material";
+import {stringAvatar} from "@/utils/AvatarUtils";
 
 type Message = {
     id?: number;
@@ -10,10 +12,11 @@ type Message = {
     conversation_id: number;
     content: string;
     created_at: string;
-    first_name?: string;
-    last_name?: string;
+    first_name: string | null;
+    last_name: string | null;
     status?: "sent" | "delivered" | "read";
     read_at?: string;
+    profile_image?: string;
 };
 
 export default function ConversationPage({params}: { params: Promise<{ id: number }> }) {
@@ -23,12 +26,13 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
     const [newMessage, setNewMessage] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [socket, setSocket] = useState<any>(null);
-    const {userId, token, first_name, last_name} = useUser();
+    const {userId, token, first_name, last_name, profile_image} = useUser();
     const [title, setTitle] = useState("");
     const [typingUsers, setTypingUsers] = useState<{ userId: number, name: string }[]>([]);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true); // 🔄 État pour le skeleton
+    const [profileImages, setProfileImages] = useState<{ url: string[], alt: string[] } | null>(null);
 
 
     useEffect(() => {
@@ -98,6 +102,7 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
                 const response = await fetch(`http://192.168.1.68:8000/conversations/${resolvedParams.id}/user/${userId}`);
                 const data = await response.json();
                 setTitle(data.name);
+                setProfileImages(data.profile_image);
             } catch (error) {
                 console.error("Failed to fetch messages:", error);
             }
@@ -155,6 +160,9 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
             author_id: userId,
             created_at: new Date().toISOString(),
             status: "sent",
+            first_name: first_name,
+            last_name: last_name,
+            profile_image: profile_image ?? undefined
         };
         console.log("Sending message", message);
         socket.emit("message", message);
@@ -200,7 +208,17 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
     return (
         <div className="p-2">
             {/* 🔔 Barre de navigation avec notifications */}
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex gap-2 items-center mb-4">
+                <AvatarGroup spacing="small" max={4} className="self-center">
+                    {profileImages?.url?.map((url: string, index) => {
+                        return (
+                            <Avatar
+                                key={index} src={url}
+                                {...stringAvatar(profileImages.alt[index] ?? "")}>
+                            </Avatar>
+                        );
+                    })}
+                </AvatarGroup>
                 <h1 className="text-2xl">{title}</h1>
             </div>
 
@@ -211,6 +229,10 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
                     const previousMessage = messages[index - 1];
                     const isDifferentAuthor = !previousMessage || previousMessage.author_id !== message.author_id;
 
+                    // URL de l'image de l'utilisateur depuis AWS S3 (exemple)
+
+                    console.log(message);
+
                     return (
                         <div
                             key={message.id}
@@ -218,9 +240,12 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
                         >
                             {isDifferentAuthor && (
                                 <div className="flex flex-row items-center gap-1 mt-4 mb-1">
-                                    <p className="text-sm font-semibold">
-                                        {isCurrentUser ? "Vous" : `${message.first_name}`}
-                                    </p>
+                                    {/* Image du profil */}
+                                    <Avatar
+                                        key={index} src={message.profile_image}
+                                        {...stringAvatar(`${message.first_name} ${message.last_name}`)}>
+                                    </Avatar>
+                                    <p className="text-sm font-semibold">{isCurrentUser ? "Vous" : `${message.first_name}`}</p>
                                     <p className="text-xs">{new Date(message.created_at).toLocaleDateString()} {new Date(message.created_at).toLocaleTimeString()}</p>
                                 </div>
                             )}
