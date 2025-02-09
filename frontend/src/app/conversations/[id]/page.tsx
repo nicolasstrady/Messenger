@@ -227,7 +227,9 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
                     const isCurrentUser = message.author_id === userId;
                     const isLastRead = lastReadMessage?.id === message.id;
                     const previousMessage = messages[index - 1];
+                    const nextMessage = messages[index + 1];
                     const isDifferentAuthor = !previousMessage || previousMessage.author_id !== message.author_id;
+                    const isLastFromAuthor = !nextMessage || nextMessage.author_id !== message.author_id;
 
                     // URL de l'image de l'utilisateur depuis AWS S3 (exemple)
 
@@ -241,30 +243,36 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
                             {isDifferentAuthor && (
                                 <div className="flex flex-row items-center gap-1 mt-4 mb-1">
                                     {/* Image du profil */}
-                                    <Avatar
-                                        key={index} src={message.profile_image}
-                                        {...stringAvatar(`${message.first_name} ${message.last_name}`)}>
-                                    </Avatar>
+
                                     <p className="text-sm font-semibold">{isCurrentUser ? "Vous" : `${message.first_name}`}</p>
                                     <p className="text-xs">{new Date(message.created_at).toLocaleDateString()} {new Date(message.created_at).toLocaleTimeString()}</p>
                                 </div>
                             )}
-
-                            {/* Conteneur du message avec le tooltip */}
-                            <div className="group relative">
-                                <div
-                                    className={`p-2 px-4 my-1 rounded-lg max-w-xs ${
-                                        isCurrentUser ? "bg-blue-100" : "bg-gray-200"
-                                    } break-words whitespace-pre-wrap`}
-                                >
-                                    <p>{message.content}</p>
+                            <div className={`flex ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}>
+                                <div className="w-1/5">
+                                    {isLastFromAuthor && (
+                                        <Avatar
+                                            key={index} src={message.profile_image}
+                                            {...stringAvatar(`${message.first_name} ${message.last_name}`)}>
+                                        </Avatar>
+                                    )}
                                 </div>
+                                {/* Conteneur du message avec le tooltip */}
+                                <div className="group relative">
+                                    <div
+                                        className={`p-2 px-4 my-1 rounded-lg max-w-xs ${
+                                            isCurrentUser ? "bg-blue-100" : "bg-gray-200"
+                                        } break-words whitespace-pre-wrap`}
+                                    >
+                                        <p>{message.content}</p>
+                                    </div>
 
-                                {/* Bulle affichant l'heure au survol */}
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1
+                                    {/* Bulle affichant l'heure au survol */}
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1
                                         hidden group-hover:flex bg-gray-800 text-white text-xs px-2 py-1
                                         rounded-lg shadow-md">
-                                    {new Date(message.created_at).toLocaleTimeString()}
+                                        {new Date(message.created_at).toLocaleTimeString()}
+                                    </div>
                                 </div>
                             </div>
                             {isCurrentUser && (
