@@ -8,7 +8,7 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
     cors: {
-        origin: 'http://192.168.1.68:3000',
+        origin: 'http://192.168.1.193:3000',
         methods: ['GET', 'POST'],
         allowedHeaders: ['Content-Type'],
     }

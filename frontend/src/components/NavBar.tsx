@@ -28,7 +28,7 @@ export default function Navbar() {
     };
 
     return (
-        <nav className="navbar navbar-expand-lg p-2 navbar-dark bg-gray-800 h-12">
+        <nav className="navbar navbar-expand-lg p-1 navbar-dark bg-gray-800">
             <div className="flex justify-between items-center h-full w-full">
                 {/* Logo */}
                 <Link href="/conversations">

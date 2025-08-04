@@ -8,64 +8,49 @@ use App\Controllers\UserController;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Factory\AppFactory;
+use Psr\Http\Message\ResponseInterface;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $app = AppFactory::create();
 
-//$app->addBodyParsingMiddleware();
-//$app->addRoutingMiddleware();
-//$app->addErrorMiddleware(true, true, true);
-//
-//$app->add(function (ServerRequestInterface $request, RequestHandlerInterface $handler) use ($app): ResponseInterface {
-//    if ($request->getMethod() === 'OPTIONS') {
-//        $response = $app->getResponseFactory()->createResponse();
-//    } else {
-//        $response = $handler->handle($request);
-//    }
-//
-//    $response = $response
-//        ->withHeader('Access-Control-Allow-Credentials', 'true')
-//        ->withHeader('Access-Control-Allow-Origin', '*')
-//        ->withHeader('Access-Control-Allow-Headers', '*')
-//        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-//        ->withHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-//        ->withHeader('Pragma', 'no-cache');
-//
-//    if (ob_get_contents()) {
-//        ob_clean();
-//    }
-//
-//    return $response;
-//});
-
-//$beforeMiddleware = function (Request $request, RequestHandler $handler) use ($app) {
-//    // Example: Check for a specific header before proceeding
-//    $auth = $request->getHeaderLine('Authorization');
-//    if ($auth) {
-//        // Short-circuit and return a response immediately
-//        $response = $app->getResponseFactory()->createResponse();
-//        $response->getBody()->write('Unauthorized');
-//
-//        return $response->withStatus(401);
-//    }
-//
-//    // Proceed with the next middleware
-//    return $handler->handle($request);
-//};
+$app->addBodyParsingMiddleware();
+$app->addRoutingMiddleware();
+$app->addErrorMiddleware(true, true, true);
 
 $app->options('/{routes:.+}', function ($request, $response, $args) {
     return $response;
 });
 
-$app->add(function (Request $request, RequestHandler $handler) {
+// CORS middleware DOIT être après les autres
+$app->add(function (Request $request, RequestHandler $handler): ResponseInterface {
+    $origin = $request->getHeaderLine('Origin');
+    $allowedOrigins = [
+        'http://192.168.1.193:3000',
+        'http://localhost:3000',
+    ];
+
     $response = $handler->handle($request);
+
+    if (in_array($origin, $allowedOrigins)) {
+        $response = $response->withHeader('Access-Control-Allow-Origin', $origin);
+    }
+
     return $response
         ->withHeader('Access-Control-Allow-Credentials', 'true')
-        ->withHeader('Access-Control-Allow-Origin', 'http://192.168.1.68:3000')
-        ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization');
-//         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
 });
+
+// $app->add(function (Request $request, RequestHandler $handler) {
+//     $response = $handler->handle($request);
+//     return $response
+//         ->withHeader('Access-Control-Allow-Credentials', 'true')
+//         ->withHeader('Access-Control-Allow-Origin', 'http://192.168.1.193:3000')
+//
+//         ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization');
+// //         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+// });
 
 //$afterMiddleware = function (Request $request, RequestHandler $handler) {
 //    // Proceed with the next middleware
@@ -73,7 +58,7 @@ $app->add(function (Request $request, RequestHandler $handler) {
 //
 //    // Modify the response after the application has processed the request
 //    $response = $response
-//        ->withHeader('Access-Control-Allow-Origin', 'http://192.168.1.68:3000')
+//        ->withHeader('Access-Control-Allow-Origin', 'http://192.168.1.193:3000')
 //        ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 //        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
 //        ->withHeader('Access-Control-Allow-Credentials', 'true');

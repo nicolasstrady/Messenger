@@ -74,7 +74,10 @@ class UserController
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
         } catch (\Exception $e) {
-            $response->getBody()->write(json_encode(['error' => 'Failed to register user.']));
+            $response->getBody()->write(json_encode([
+                'error' => 'Failed to register user.',
+                'message' => $e->getMessage()
+            ]));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
     }

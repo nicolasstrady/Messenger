@@ -39,7 +39,7 @@ const Page = () => {
         setIsLoading(true); // Active le loading
         try {
             console.log('FETCH CONVERSATIONS')
-            const response = await fetch(`http://192.168.1.68:8000/conversations/user/${userId}`, {
+            const response = await fetch(`http://192.168.1.193:8000/conversations/user/${userId}`, {
                 method: "GET",
                 credentials: "include",
                 headers: {"Content-Type": "application/json"},
@@ -61,7 +61,7 @@ const Page = () => {
 
     // 🔔 Écoute des notifications en temps réel via Socket.IO
     useEffect(() => {
-        const socketInstance = io("http://192.168.1.68:8081");
+        const socketInstance = io("http://192.168.1.193:8081");
 
         socketInstance.on("connect", () => {
             console.log("Socket.IO connected");
@@ -121,7 +121,7 @@ const Page = () => {
     return (
         <>
             {/*<title>Messenger | Conversations</title>*/}
-            <div className="p-4 h-[95vh]">
+            <div className="p-4 w-full">
                 {/* 🔔 Barre de navigation avec notifications */}
                 <div className="flex justify-between items-center mb-4">
                     <h1 className="text-2xl">Conversations</h1>
@@ -163,34 +163,41 @@ const Page = () => {
                                             <div
                                                 className="rounded-lg p-3 hover:bg-gray-100 bg-white cursor-pointer transition duration-200 flex justify-between items-start"
                                             >
-                                                <div className="flex flex-row gap-2">
-                                                    <AvatarGroup spacing="small" max={3} className="self-center">
-                                                        {conversation.profile_image?.url?.map((url: string, index) => {
-                                                            return (
-                                                                <Avatar
-                                                                    key={index} src={url}
-                                                                    {...stringAvatar(conversation.profile_image?.alt[index] ?? "")}>
-                                                                </Avatar>
-                                                            );
-                                                        })}
-                                                    </AvatarGroup>
-                                                    <div className="flex flex-col">
-                                                        <h4 className="text-lg font-semibold">{conversation.name}</h4>
-                                                        {conversation.last_message && (
-                                                            <p className="text-sm text-gray-600 mt-1">
-                                                                <span>{conversation.last_message_author_first_name} :</span> {conversation.last_message}
-                                                            </p>
-                                                        )}
+                                                <div className="flex flex-row justify-between w-full">
+                                                    <div className="flex flex-row truncate gap-2">
+                                                        <AvatarGroup spacing={24} max={3}
+                                                                     className="self-center">
+                                                            {conversation.profile_image?.url?.map((url: string, index) => {
+                                                                return (
+                                                                    <Avatar
+                                                                        key={index} src={url}
+                                                                        {...stringAvatar(conversation.profile_image?.alt[index] ?? "")}>
+                                                                    </Avatar>
+                                                                );
+                                                            })}
+                                                        </AvatarGroup>
+                                                        <div
+                                                            className="flex flex-col truncate"> {/* Ajout de flex-grow ici */}
+                                                            <h4 className="text-lg truncate w-full font-semibold">{conversation.name}</h4>
+                                                            {conversation.last_message && (
+                                                                <p className="text-sm truncate text-gray-600 mt-1">
+                                                                    <span>{conversation.last_message_author_first_name} :</span> {conversation.last_message}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
+                                                    {/* 🔴 Affichage du compteur de messages non lus */}
+                                                    {unreadMessagesCount > 0 && (
+                                                        <div>
+                                                            <div
+                                                                className="bg-red-500 text-white text-xs px-2 py-1 rounded-full"
+                                                            >
+                                                                {unreadMessagesCount}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                {/* 🔴 Affichage du compteur de messages non lus */}
-                                                {unreadMessagesCount > 0 && (
-                                                    <div
-                                                        className="bg-red-500 text-white text-xs px-2 py-1 rounded-full"
-                                                    >
-                                                        {unreadMessagesCount}
-                                                    </div>
-                                                )}
+
                                             </div>
                                         </Link>
                                     </li>

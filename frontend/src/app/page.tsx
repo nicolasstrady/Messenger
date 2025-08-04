@@ -15,7 +15,7 @@ export default function Home() {
         e.preventDefault();
 
         try {
-            const response = await fetch("http://192.168.1.68:8000/login", {
+            const response = await fetch("http://192.168.1.193:8000/login", {
                 method: "POST",
                 credentials: "include",
                 headers: {
