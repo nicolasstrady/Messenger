@@ -6,9 +6,11 @@ const mysql = require('mysql2/promise');
 const app = express();
 const httpServer = createServer(app);
 
+const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*';
+
 const io = new Server(httpServer, {
     cors: {
-        origin: 'http://192.168.1.193:3000',
+        origin: allowedOrigins,
         methods: ['GET', 'POST'],
         allowedHeaders: ['Content-Type'],
     }
