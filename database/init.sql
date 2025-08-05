@@ -60,3 +60,59 @@ CREATE TABLE notifications
     FOREIGN KEY (conversation_id) REFERENCES conversations (id) ON DELETE CASCADE,
     FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE
 );
+
+-- Insertion de données d'exemple
+INSERT INTO users (username, email, password, first_name, last_name, profile_image) VALUES
+    ('alice.leroy', 'alice@example.com', 'hash1', 'Alice', 'Leroy', NULL),
+    ('benjamin.dubois', 'benjamin@example.com', 'hash2', 'Benjamin', 'Dubois', NULL),
+    ('chloe.martin', 'chloe@example.com', 'hash3', 'Chloé', 'Martin', NULL),
+    ('damien.lefebvre', 'damien@example.com', 'hash4', 'Damien', 'Lefebvre', NULL),
+    ('emma.girard', 'emma@example.com', 'hash5', 'Emma', 'Girard', NULL),
+    ('francois.dupont', 'francois@example.com', 'hash6', 'François', 'Dupont', NULL),
+    ('julien.moreau', 'julien@example.com', 'hash7', 'Julien', 'Moreau', NULL),
+    ('lea.caron', 'lea@example.com', 'hash8', 'Léa', 'Caron', NULL);
+
+INSERT INTO conversations (name, type) VALUES
+    ('Discussion Alice & Benjamin', 'private'),
+    ('Voyage à Paris', 'group'),
+    ('Projet Secret', 'group'),
+    ('Discussion Julien & Léa', 'private');
+
+INSERT INTO participants (user_id, conversation_id) VALUES
+    (1,1), (2,1),
+    (3,2), (4,2), (5,2),
+    (1,3), (2,3), (3,3), (6,3),
+    (7,4), (8,4);
+
+INSERT INTO messages (content, author_id, conversation_id, status, read_at) VALUES
+    ('Salut Benjamin, comment vas-tu ?', 1, 1, 'delivered', NULL),
+    ('Ça va bien, merci ! Et toi ?', 2, 1, 'read', '2024-05-01 10:05:00'),
+    ('Très bien, merci. Tu fais quoi ce soir ?', 1, 1, 'sent', NULL),
+    ('Je vais au cinéma, tu veux venir ?', 2, 1, 'sent', NULL),
+    ('Vous êtes prêts pour le voyage à Paris ?', 3, 2, 'sent', NULL),
+    ('Oui, j''ai déjà préparé mes valises.', 4, 2, 'sent', NULL),
+    ('Trop hâte de voir la Tour Eiffel !', 5, 2, 'delivered', NULL),
+    ('On se retrouve à la gare à 8h ?', 3, 2, 'sent', NULL),
+    ('Le plan pour le projet secret est prêt ?', 1, 3, 'delivered', NULL),
+    ('Presque, il manque juste le budget.', 6, 3, 'sent', NULL),
+    ('On en discute demain matin.', 2, 3, 'read', '2024-05-01 09:30:00'),
+    ('Parfait, j''apporte les croissants.', 3, 3, 'sent', NULL),
+    ('Salut Léa, tu viens au café cet après-midi ?', 7, 4, 'sent', NULL),
+    ('Oui, à quelle heure ?', 8, 4, 'delivered', NULL),
+    ('Vers 15h devant la bibliothèque.', 7, 4, 'read', '2024-05-01 12:00:00'),
+    ('À tout à l''heure !', 8, 4, 'sent', NULL);
+
+INSERT INTO notifications (user_id, conversation_id, message_id) VALUES
+    (2,1,1),
+    (2,1,3),
+    (1,1,4),
+    (4,2,5), (5,2,5),
+    (3,2,6), (5,2,6),
+    (3,2,7), (4,2,7),
+    (4,2,8), (5,2,8),
+    (2,3,9), (3,3,9), (6,3,9),
+    (1,3,10), (2,3,10), (3,3,10),
+    (1,3,12), (2,3,12), (6,3,12),
+    (8,4,13),
+    (7,4,14),
+    (7,4,16);
