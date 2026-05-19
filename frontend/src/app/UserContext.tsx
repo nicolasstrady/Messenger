@@ -59,7 +59,7 @@ export const UserProvider = ({children}: { children: React.ReactNode }) => {
     useEffect(() => {
         if (!userId) return;
 
-        const socket = io("http://192.168.1.193:8081");
+        const socket = io("http://192.168.1.68:8081");
 
         socket.on("connect", () => {
             console.log("🔌 Connexion WebSocket");

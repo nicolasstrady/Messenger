@@ -46,7 +46,7 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
     useEffect(() => {
         if (!resolvedParams.id) return;
         if (!userId) return;
-        const socketInstance = io("http://192.168.1.193:8081");
+        const socketInstance = io("http://192.168.1.68:8081");
 
         socketInstance.on("connect", () => {
             console.log("Socket.IO connected");
@@ -100,7 +100,7 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
 
         const fetchConversationDetails = async () => {
             try {
-                const response = await fetch(`http://192.168.1.193:8000/conversations/${resolvedParams.id}/user/${userId}`);
+                const response = await fetch(`http://192.168.1.68:8000/conversations/${resolvedParams.id}/user/${userId}`);
                 const data = await response.json();
                 setTitle(data.name);
                 setProfileImages(data.profile_image);
@@ -111,7 +111,7 @@ export default function ConversationPage({params}: { params: Promise<{ id: numbe
 
         const fetchMessages = async () => {
             try {
-                const response = await fetch(`http://192.168.1.193:8000/messages/${resolvedParams.id}`);
+                const response = await fetch(`http://192.168.1.68:8000/messages/${resolvedParams.id}`);
                 const data = await response.json();
                 setMessages(data);
             } catch (error) {

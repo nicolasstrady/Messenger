@@ -28,7 +28,7 @@ const RegisterPage = () => {
         }
 
         try {
-            const response = await fetch("http://192.168.1.193:8000/register", {
+            const response = await fetch("http://192.168.1.68:8000/register", {
                 method: "POST",
                 body: formDataToSend, // Envoi de FormData
             });

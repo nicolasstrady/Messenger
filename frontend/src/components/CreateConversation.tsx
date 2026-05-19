@@ -24,7 +24,7 @@ const CreateConversation: React.FC<CreateConversationProps> = ({onConversationCr
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch("http://192.168.1.193:8000/users");
+                const response = await fetch("http://192.168.1.68:8000/users");
                 const data = await response.json();
                 setUsers(data);
             } catch (error) {
@@ -49,7 +49,7 @@ const CreateConversation: React.FC<CreateConversationProps> = ({onConversationCr
         const participants = [userId, ...selectedUsers];
 
         try {
-            const response = await fetch("http://192.168.1.193:8000/conversations", {
+            const response = await fetch("http://192.168.1.68:8000/conversations", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({title: title || null, participants, isPrivate: participants.length === 2}),

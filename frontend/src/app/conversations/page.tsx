@@ -39,7 +39,7 @@ const Page = () => {
         setIsLoading(true); // Active le loading
         try {
             console.log('FETCH CONVERSATIONS')
-            const response = await fetch(`http://192.168.1.193:8000/conversations/user/${userId}`, {
+            const response = await fetch(`http://192.168.1.68:8000/conversations/user/${userId}`, {
                 method: "GET",
                 credentials: "include",
                 headers: {"Content-Type": "application/json"},
@@ -61,7 +61,7 @@ const Page = () => {
 
     // 🔔 Écoute des notifications en temps réel via Socket.IO
     useEffect(() => {
-        const socketInstance = io("http://192.168.1.193:8081");
+        const socketInstance = io("http://192.168.1.68:8081");
 
         socketInstance.on("connect", () => {
             console.log("Socket.IO connected");

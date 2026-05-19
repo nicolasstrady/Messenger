@@ -26,7 +26,7 @@ $app->options('/{routes:.+}', function ($request, $response, $args) {
 $app->add(function (Request $request, RequestHandler $handler): ResponseInterface {
     $origin = $request->getHeaderLine('Origin');
     $allowedOrigins = [
-        'http://192.168.1.193:3000',
+        'http://192.168.1.68:3000',
         'http://localhost:3000',
     ];
 
@@ -46,7 +46,7 @@ $app->add(function (Request $request, RequestHandler $handler): ResponseInterfac
 //     $response = $handler->handle($request);
 //     return $response
 //         ->withHeader('Access-Control-Allow-Credentials', 'true')
-//         ->withHeader('Access-Control-Allow-Origin', 'http://192.168.1.193:3000')
+//         ->withHeader('Access-Control-Allow-Origin', 'http://192.168.1.68:3000')
 //
 //         ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization');
 // //         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
@@ -58,7 +58,7 @@ $app->add(function (Request $request, RequestHandler $handler): ResponseInterfac
 //
 //    // Modify the response after the application has processed the request
 //    $response = $response
-//        ->withHeader('Access-Control-Allow-Origin', 'http://192.168.1.193:3000')
+//        ->withHeader('Access-Control-Allow-Origin', 'http://192.168.1.68:3000')
 //        ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 //        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
 //        ->withHeader('Access-Control-Allow-Credentials', 'true');
