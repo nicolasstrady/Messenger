@@ -1,7 +1,4 @@
-import Link from "next/link";
 import React from "react";
-import NotificationPopup from "@/components/NotificationPopup";
-import LogoutButton from "@/components/LogoutButton";
 import Navbar from "@/components/NavBar";
 
 export default function ConversationLayout({
@@ -10,10 +7,9 @@ export default function ConversationLayout({
     children: React.ReactNode;
 }) {
     return (
-        <section className="flex flex-col h-dvh max-h-dvh min-w-screen overflow-x-hidden">
+        <section className="flex h-dvh max-h-dvh min-w-screen flex-col overflow-x-hidden bg-[#d7e8ff] dark:bg-[#01040c]">
             <Navbar/>
-            {/* Contenu qui prend le reste de la page */}
-            <div className="px-4 bg-gray-300 flex flex-grow">
+            <div className="flex min-h-0 flex-grow px-3 pb-3 pt-3 sm:px-5 sm:pb-5">
                 {children}
             </div>
         </section>

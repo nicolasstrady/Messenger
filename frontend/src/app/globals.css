@@ -3,35 +3,70 @@
 @tailwind utilities;
 
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    --background: #d7e8ff;
+    --foreground: #14161f;
+    --surface: #ffffff;
+    --surface-soft: #f9fafc;
+    --border: #e4e7ef;
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --danger: #dc2626;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
-    }
+.dark {
+    --background: #030712;
+    --foreground: #eaf1ff;
+    --surface: #0d1a2e;
+    --surface-soft: #111f35;
+    --border: rgba(125, 163, 255, 0.18);
+    --primary: #60a5fa;
+    --primary-dark: #2563eb;
 }
 
-/* Appliquer une scrollbar fine sans les flèches et avec bords arrondis */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    color: var(--foreground);
+    background:
+        linear-gradient(135deg, #eef6ff 0%, #d7e8ff 54%, #e8f3ff 100%);
+}
+
+.dark body {
+    background:
+        linear-gradient(135deg, #01040c 0%, #020817 58%, #050914 100%);
+}
+
+button,
+input {
+    font: inherit;
+}
+
 .scrollbar-custom::-webkit-scrollbar {
-    width: 8px; /* Largeur de la scrollbar */
-    height: 8px; /* Hauteur pour les scrollbars horizontales */
+    width: 8px;
+    height: 8px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.3); /* Couleur de la barre */
-    border-radius: 10px; /* Bords arrondis */
+    background-color: rgba(37, 99, 235, 0.24);
+    border-radius: 10px;
+}
+
+.dark .scrollbar-custom::-webkit-scrollbar-thumb {
+    background-color: rgba(147, 197, 253, 0.26);
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {
-    background: transparent; /* Fond transparent */
+    background: transparent;
 }
 
 .scrollbar-custom::-webkit-scrollbar-button {
-    display: none; /* Cache les flèches en haut et en bas */
+    display: none;
 }
-
-
-

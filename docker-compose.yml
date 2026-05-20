@@ -40,7 +40,7 @@ services:
 
   db:
     image: mariadb:latest
-    container_name: database
+    container_name: db_messenger
     environment:
       - MYSQL_ROOT_PASSWORD=chat_password
       - MYSQL_DATABASE=chat_db

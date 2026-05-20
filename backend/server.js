@@ -18,7 +18,7 @@ const io = new Server(httpServer, {
 
 // Création du pool de connexion MySQL
 const pool = mysql.createPool({
-    host: 'database',
+    host: 'db_messenger',
     user: 'chat_user',
     password: 'chat_password',
     database: 'chat_db',

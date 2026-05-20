@@ -1,8 +1,6 @@
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import {UserProvider} from "@/app/UserContext";
-import NotificationPopup from "@/components/NotificationPopup";
-import LogoutButton from "@/components/LogoutButton";
 import Favicon from "./favicon.ico"
 
 

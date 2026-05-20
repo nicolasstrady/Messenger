@@ -9,17 +9,18 @@ export default function LogoutButton() {
     const router = useRouter();
 
     const handleLogout = () => {
-        logout(); // Appelle la fonction logout du contexte
-        localStorage.removeItem("token"); // Supprime le token (ou tout autre méthode)
-        router.replace("/"); // Redirige vers la page de connexion
+        logout();
+        localStorage.removeItem("token");
+        router.replace("/");
     };
 
     return (
         <button
             onClick={handleLogout}
-            className="flex items-center gap-2 bg-red-500 text-white px-2 py-2 rounded-lg hover:bg-red-600 transition"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-700 transition hover:border-red-200 hover:bg-red-100"
+            aria-label="Se deconnecter"
         >
-            <LogOut size={20}/>
+            <LogOut size={18}/>
         </button>
     );
 }
